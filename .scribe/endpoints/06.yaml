@@ -1,0 +1,97 @@
+name: Inventory
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/v1/inventory
+    metadata:
+      custom: []
+      groupName: Inventory
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'List stock'
+      description: |-
+        Read-only shelf truth per product and store. Movements are recorded on
+        the web screen or by order sync, never here.
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters:
+      'filter[search]':
+        custom: []
+        name: 'filter[search]'
+        description: 'Product name, SKU or barcode.'
+        required: false
+        example: cola
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      'filter[store_id]':
+        custom: []
+        name: 'filter[store_id]'
+        description: ''
+        required: false
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      'filter[state]':
+        custom: []
+        name: 'filter[state]'
+        description: '`low`, `out` or `oversold`.'
+        required: false
+        example: low
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      sort:
+        custom: []
+        name: sort
+        description: '`qty` (default, lowest first) or `-qty`.'
+        required: false
+        example: qty
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanQueryParameters:
+      'filter[search]': cola
+      'filter[store_id]': 1
+      'filter[state]': low
+      sort: qty
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null

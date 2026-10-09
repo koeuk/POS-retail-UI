@@ -1,0 +1,657 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+|--------------------------------------------------------------------------
+| Theme — "soft silver & deep green"
+|--------------------------------------------------------------------------
+| A retail back-office lives on screen for eight hours at a stretch, so the
+| ground is a barely-tinted cool silver rather than glaring white: white cards
+| float on it, and a single deep-green accent does all the signalling. At this
+| darkness the green carries white text cleanly instead of glowing.
+*/
+
+@layer base {
+    :root {
+        --font-display: 'Noto Sans', 'Noto Sans Khmer', ui-sans-serif, system-ui, sans-serif;
+        --font-sans: 'Noto Sans', 'Noto Sans Khmer', ui-sans-serif, system-ui, sans-serif;
+        /* No separate mono face — SKUs, prices and quantities wear the same
+           Noto as everything else. Alignment comes from the .tabular class
+           (font-variant-numeric: tabular-nums), not from a monospace font. */
+        --font-mono: 'Noto Sans', 'Noto Sans Khmer', ui-sans-serif, system-ui, sans-serif;
+
+        /* Soft silver — a cool gray deep enough that flat white cards read without a shadow. */
+        --background: 220 14% 95%;
+        --foreground: 220 18% 14%;
+        --card: 0 0% 100%;
+        --card-foreground: 220 18% 14%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 220 18% 14%;
+        --primary: 155 58% 26%;
+        --primary-foreground: 150 30% 98%;
+
+        /*
+         * Brand band. Deliberately NOT --primary: the primary token has to
+         * lighten in dark mode so buttons stay legible on a near-black page,
+         * but the shop's name board is a painted surface — it should look like
+         * the same paint whatever the screen is doing.
+         */
+        --brand: 155 58% 26%;
+        --brand-bright: 158 55% 32%;
+        --brand-foreground: 150 30% 98%;
+        --secondary: 220 14% 95%;
+        --secondary-foreground: 220 12% 22%;
+        --muted: 220 16% 96%;
+        --muted-foreground: 220 9% 46%;
+        --accent: 150 32% 93%;
+        --accent-foreground: 155 50% 20%;
+        --destructive: 5 72% 51%;
+        --destructive-foreground: 220 16% 98%;
+        --border: 220 15% 91%;
+        --input: 220 15% 88%;
+        --ring: 155 58% 26%;
+
+        --chart-1: 155 58% 30%;
+        --chart-2: 173 48% 38%;
+        --chart-3: 12 70% 52%;
+        --chart-4: 43 88% 48%;
+        --chart-5: 200 45% 42%;
+
+        /* Categorical series for charts. Validated with the dataviz palette
+           validator against the card surface: all hard gates pass in both
+           modes. The two lighter hues fall under 3:1 in light mode, so every
+           chart using them carries visible labels rather than colour alone. */
+        --series-1: #2a78d6;
+        --series-2: #eb6834;
+        --series-3: #1baf7a;
+        --series-4: #eda100;
+
+        --radius: 0.75rem;
+
+        /* A solid deep-green panel, not a tinted grey one. The sidebar is
+           the app's one piece of brand colour, so it carries the darkest
+           green in the palette and everything on it is light text — which
+           is why these tokens do not follow --background the way the rest
+           of the surfaces do. */
+        --sidebar-background: 158 42% 14%;
+        --sidebar-foreground: 150 20% 88%;
+        --sidebar-primary: 150 45% 70%;
+        --sidebar-primary-foreground: 158 45% 10%;
+        /* The active pill: a lift off the panel rather than a colour change,
+           so the current screen reads without shouting. */
+        --sidebar-accent: 158 38% 22%;
+        --sidebar-accent-foreground: 145 55% 88%;
+        --sidebar-border: 158 32% 20%;
+        --sidebar-ring: 150 45% 70%;
+
+        /* Motion. One easing curve everywhere keeps the app feeling like one
+           object. Durations are deliberately short — this is a work tool. */
+        --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+        --ease-spring: cubic-bezier(0.34, 1.46, 0.64, 1);
+        --dur-instant: 90ms;
+        --dur-fast: 140ms;
+        --dur-base: 220ms;
+        --dur-slow: 360ms;
+
+        /* App-shell geometry. --app-vh is overwritten by useTelegram() with
+           Telegram's reported viewport height; everywhere else the dvh
+           fallback already tracks the collapsing mobile browser chrome. */
+        --app-vh: 100dvh;
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
+        --tabbar-h: 3.5rem;
+        --appbar-h: 3.5rem;
+    }
+
+    .dark {
+        --background: 28 9% 8%;
+        --foreground: 40 20% 93%;
+        --card: 28 8% 11%;
+        --card-foreground: 40 20% 93%;
+        --popover: 28 8% 11%;
+        --popover-foreground: 40 20% 93%;
+        --primary: 152 48% 46%;
+        --primary-foreground: 155 40% 7%;
+
+        /* Deeper still on a dark page: the same green at full lightness would
+           glow against near-black instead of sitting behind the type. */
+        --brand: 155 55% 17%;
+        --brand-bright: 158 50% 22%;
+        --brand-foreground: 150 25% 96%;
+        --secondary: 28 7% 17%;
+        --secondary-foreground: 40 20% 93%;
+        --muted: 28 7% 15%;
+        --muted-foreground: 34 8% 62%;
+        --accent: 28 10% 20%;
+        --accent-foreground: 150 55% 68%;
+        --destructive: 5 68% 52%;
+        --destructive-foreground: 40 20% 95%;
+        --border: 28 7% 19%;
+        --input: 28 7% 22%;
+        --ring: 152 48% 46%;
+
+        --chart-1: 152 48% 50%;
+        --chart-2: 173 55% 48%;
+        --chart-3: 12 78% 60%;
+        --chart-4: 43 92% 58%;
+        --chart-5: 200 55% 55%;
+
+        /* Same four hues re-stepped for the dark surface — not an auto-flip. */
+        --series-1: #3987e5;
+        --series-2: #d95926;
+        --series-3: #199e70;
+        --series-4: #c98500;
+
+        --sidebar-background: 28 10% 10%;
+        --sidebar-foreground: 40 15% 88%;
+        --sidebar-primary: 152 48% 46%;
+        --sidebar-primary-foreground: 155 40% 7%;
+        --sidebar-accent: 28 9% 17%;
+        --sidebar-accent-foreground: 150 55% 68%;
+        --sidebar-border: 28 7% 18%;
+        --sidebar-ring: 152 48% 46%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings:
+            'cv05' 1,
+            'ss01' 1;
+
+        /*
+         * Native-app manners on a touch device: no grey flash on tap, no
+         * rubber-band bounce dragging the whole page, and no iOS text
+         * inflation in landscape. Inside Telegram the bounce is the
+         * difference between "a website in a webview" and "an app".
+         */
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior-y: none;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    /* Long-press-to-select belongs on content, not on chrome. */
+    @media (pointer: coarse) {
+        button,
+        a,
+        [role='button'],
+        [role='tab'] {
+            -webkit-touch-callout: none;
+        }
+    }
+
+    /*
+     * A 16px font is the threshold below which iOS Safari zooms the page on
+     * focus — which then leaves the layout scrolled sideways. The inputs are
+     * already text-base on mobile; this catches anything that is not.
+     */
+    @media (pointer: coarse) {
+        input,
+        select,
+        textarea {
+            font-size: max(16px, 1rem);
+        }
+    }
+
+    /* Money, SKUs and barcodes must not jitter as digits change. */
+    .tabular,
+    th[data-numeric],
+    td[data-numeric] {
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: 'tnum' 1;
+    }
+}
+
+@layer components {
+    /*
+     * The card that holds a list. On a phone it goes edge-to-edge — a native
+     * list has no side gutter and no corner radius, and the 20px of page
+     * padding either side is 11% of a 360px screen that the content wants.
+     */
+    .list-panel {
+        @apply -mx-2.5 border-y border-border bg-card md:mx-0 md:rounded-2xl md:border;
+    }
+
+    /*
+     * One row of a list: a tap area first, then the row's own controls —
+     * 3.5rem clears the 44px touch floor with the padding included. On a
+     * phone each row floats as its own card, matching every list screen;
+     * on desktop it is the classic divided row inside the panel.
+     */
+    .list-row {
+        @apply flex items-stretch transition-colors;
+        @apply max-md:mx-4 max-md:my-2.5 max-md:overflow-hidden max-md:rounded-xl max-md:border max-md:border-border max-md:bg-card;
+        @apply md:border-b md:border-border md:last:border-b-0;
+    }
+
+    /*
+     * Hover lives on the row, not the inner button, so the trailing delete
+     * control tints with it and the row reads as one thing. Gated on a real
+     * pointer: a touch tablet has no hover, and without the gate the last
+     * row tapped would stay highlighted until the next tap somewhere else.
+     */
+    @media (hover: hover) {
+        .list-row:hover {
+            @apply bg-muted/40;
+        }
+    }
+
+    .list-row-main {
+        @apply row-press flex min-w-0 flex-1 items-center gap-3 px-5 py-3 text-left;
+    }
+
+    /* Trailing destructive control. Wide enough to hit, narrow enough to ignore. */
+    .list-row-action {
+        @apply flex w-12 shrink-0 items-center justify-center text-muted-foreground transition-colors active:text-destructive;
+    }
+
+    /*
+     * Select / Popover as a bottom sheet (phones). Reka positions the popper wrapper
+     * with inline floating-ui styles, so the override has to be !important
+     * and live on the wrapper — which is also the only ancestor outside the
+     * dismissable layer, so a tap on it (the backdrop) closes the menu.
+     */
+    [data-reka-popper-content-wrapper]:has(> [data-sheet]) {
+        position: fixed !important;
+        inset: 0 !important;
+        transform: none !important;
+        min-width: 0 !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        pointer-events: auto;
+        background: rgb(0 0 0 / 0.5);
+        animation: fade-in var(--dur-base) var(--ease-out-quint) both;
+    }
+
+    [data-reka-popper-content-wrapper]:has(> [data-sheet][data-state='closed']) {
+        animation: fade-out var(--dur-base) var(--ease-out-quint) both;
+    }
+
+    /* Grab handle, purely visual — the sheet is dismissed by tapping outside. */
+    [data-sheet]::before {
+        content: '';
+        display: block;
+        margin: 0.5rem auto 0.25rem;
+        height: 0.25rem;
+        width: 2.5rem;
+        border-radius: 9999px;
+        background: hsl(var(--muted-foreground) / 0.3);
+    }
+
+    /* Rows at finger size: 44px+ tall and body-sized text. */
+    [data-sheet] [role='option'] {
+        @apply rounded-lg py-3 pl-10 text-base;
+    }
+
+    [data-sheet] [role='option'] > span:first-child {
+        @apply left-3;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Motion
+|--------------------------------------------------------------------------
+| Only transform and opacity are animated. Anything touching width, height,
+| top/left or margin would trigger layout on every frame and visibly stutter
+| on a tablet, which is where the POS screen actually runs.
+*/
+
+@layer utilities {
+    /* A swipeable rail hides its scrollbar — the overflow is felt, not drawn. */
+    .scrollbar-none {
+        scrollbar-width: none;
+    }
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+
+    @keyframes rise-in {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 10px, 0);
+        }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fade-out {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    @keyframes scale-in {
+        from {
+            opacity: 0;
+            transform: scale3d(0.96, 0.96, 1);
+        }
+        to {
+            opacity: 1;
+            transform: scale3d(1, 1, 1);
+        }
+    }
+
+    @keyframes slide-in-left {
+        from {
+            opacity: 0;
+            transform: translate3d(-8px, 0, 0);
+        }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+    .animate-rise {
+        /* `backwards`, not `both`: the end state is the natural one, and
+           pinning it would override the .lift hover transform for good. */
+        animation: rise-in var(--dur-base) var(--ease-out-quint) backwards;
+    }
+
+    .animate-fade {
+        animation: fade-in var(--dur-base) var(--ease-out-quint) both;
+    }
+
+    .animate-scale {
+        animation: scale-in var(--dur-base) var(--ease-spring) both;
+    }
+
+    .animate-slide-left {
+        animation: slide-in-left var(--dur-base) var(--ease-out-quint) both;
+    }
+
+    /* Stagger: set --i on the element (or via :nth-child below). */
+    .stagger > * {
+        /* `backwards`, not `both`: the end state is the natural one, and
+           pinning it would override the .lift hover transform for good. */
+        animation: rise-in var(--dur-base) var(--ease-out-quint) backwards;
+    }
+
+    .stagger > *:nth-child(1) {
+        animation-delay: 0ms;
+    }
+    .stagger > *:nth-child(2) {
+        animation-delay: 40ms;
+    }
+    .stagger > *:nth-child(3) {
+        animation-delay: 80ms;
+    }
+    .stagger > *:nth-child(4) {
+        animation-delay: 120ms;
+    }
+    .stagger > *:nth-child(5) {
+        animation-delay: 160ms;
+    }
+    .stagger > *:nth-child(6) {
+        animation-delay: 200ms;
+    }
+    .stagger > *:nth-child(7) {
+        animation-delay: 240ms;
+    }
+    .stagger > *:nth-child(8) {
+        animation-delay: 280ms;
+    }
+    .stagger > *:nth-child(n + 9) {
+        animation-delay: 320ms;
+    }
+
+    /* Press feedback. Compositor-only, so it stays smooth under touch. */
+    .press {
+        transition: transform var(--dur-instant) var(--ease-out-quint);
+    }
+
+    .press:active {
+        transform: scale3d(0.97, 0.97, 1);
+    }
+
+    .lift {
+        /* base-speed, not fast: a card is a surface, and surfaces glide. */
+        transition:
+            transform var(--dur-base) var(--ease-out-quint),
+            box-shadow var(--dur-base) var(--ease-out-quint);
+    }
+
+    /*
+     * Rise, and cast the shadow that rising implies: a wide soft one for the
+     * lift and a tight one to keep the edge crisp. Low alpha so it reads as
+     * air under the card, not a border around it.
+     */
+    .lift:hover {
+        transform: translate3d(0, -2px, 0);
+        box-shadow:
+            0 10px 24px -10px rgb(0 0 0 / 0.18),
+            0 2px 6px -2px rgb(0 0 0 / 0.08);
+    }
+
+    /*
+    |----------------------------------------------------------------------
+    | Mobile app shell
+    |----------------------------------------------------------------------
+    | The phone build is not a narrow desktop — it is a tab-bar app. These
+    | utilities are the vocabulary the shell is written in.
+    */
+
+    /* Safe areas. Used on the tab bar, the app bar and any fixed sheet. */
+    .pb-safe {
+        padding-bottom: var(--safe-bottom);
+    }
+
+    .pt-safe {
+        padding-top: var(--safe-top);
+    }
+
+    /* Content must clear the fixed tab bar, home indicator included. */
+    .pb-tabbar {
+        padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom));
+    }
+
+    .h-app {
+        height: var(--app-vh);
+    }
+
+    .min-h-app {
+        min-height: var(--app-vh);
+    }
+
+    /*
+     * Horizontal chip rails (filters, categories). Momentum scrolling with
+     * snap, and no scrollbar eating 8px of a 360px-wide screen.
+     */
+    .rail {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .rail::-webkit-scrollbar {
+        display: none;
+    }
+
+    .rail > * {
+        scroll-snap-align: start;
+        flex: none;
+    }
+
+    /*
+     * Touch target floor. A 32px icon button is fine with a mouse and a
+     * coin-toss with a thumb — 44px is the documented minimum on both
+     * platforms. Applied by media query so the desktop density survives.
+     */
+    @media (pointer: coarse) {
+        .touch-target {
+            min-height: 2.75rem;
+            min-width: 2.75rem;
+        }
+    }
+
+    /* A row that behaves like a native list item: full-bleed press feedback. */
+    .row-press {
+        transition:
+            background-color var(--dur-instant) var(--ease-out-quint),
+            transform var(--dur-instant) var(--ease-out-quint);
+    }
+
+    .row-press:active {
+        background-color: hsl(var(--muted));
+        transform: scale3d(0.995, 0.995, 1);
+    }
+}
+
+/*
+| Accessibility: honour the OS setting. This is a hard requirement, not a
+| nicety — motion sensitivity is real and this app runs all day.
+*/
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Receipt printing
+|--------------------------------------------------------------------------
+| The receipt renders from local Dexie data, so printing works with no
+| network at all. When a print is requested the page hides everything except
+| the slip, which is sized for an 80mm thermal roll.
+|
+| `visibility` rather than `display` on the ancestors: display:none would
+| detach the receipt along with its parents, so the chain is kept in the
+| layout and only the ink is switched off.
+*/
+/*
+ * A receipt that exists only to be printed — the back-office reprint on an
+ * order page. It must stay RENDERED: the print rules below work by switching
+ * `visibility`, and `display: none` would detach it from the printout
+ * entirely. So it is collapsed to a zero-size clipped box on screen instead.
+ */
+.print-only {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+@media print {
+    body.printing-receipt .print-only {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip-path: none;
+    }
+
+    body.printing-receipt * {
+        visibility: hidden;
+    }
+
+    body.printing-receipt .receipt-sheet,
+    body.printing-receipt .receipt-sheet * {
+        visibility: visible;
+    }
+
+    body.printing-receipt .receipt-sheet {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+        margin: 0;
+        padding: 4mm;
+        box-shadow: none;
+        color: #000;
+        background: #fff;
+    }
+
+    @page {
+        size: 80mm auto;
+        margin: 0;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Modern surface treatments
+|--------------------------------------------------------------------------
+| The painted brand surfaces get a quiet gradient — light falling on a
+| painted board rather than flat ink — and cards get a green-tinted soft
+| shadow instead of a grey one, so elevation feels warm, not clinical.
+*/
+@layer utilities {
+    .surface-brand {
+        background:
+            radial-gradient(120% 90% at 88% -12%, hsl(0 0% 100% / 0.13), transparent 58%),
+            linear-gradient(135deg, hsl(var(--brand)) 0%, hsl(var(--brand-bright)) 100%);
+    }
+
+    .shadow-soft {
+        box-shadow:
+            0 1px 2px hsl(220 25% 20% / 0.05),
+            0 10px 28px -10px hsl(220 25% 25% / 0.12);
+    }
+
+    .dark .shadow-soft {
+        box-shadow:
+            0 1px 2px hsl(0 0% 0% / 0.3),
+            0 10px 28px -10px hsl(0 0% 0% / 0.5);
+    }
+
+    /* Soft brand-coloured light for the auth pages: two out-of-focus pools,
+       enough to make the page feel lit without tinting the form itself. */
+    .auth-glow::before,
+    .auth-glow::after {
+        content: '';
+        position: absolute;
+        border-radius: 9999px;
+        filter: blur(90px);
+        pointer-events: none;
+    }
+
+    .auth-glow::before {
+        top: -12rem;
+        left: -10rem;
+        width: 32rem;
+        height: 32rem;
+        background: hsl(var(--primary) / 0.14);
+    }
+
+    .auth-glow::after {
+        bottom: -14rem;
+        right: -10rem;
+        width: 36rem;
+        height: 36rem;
+        background: hsl(var(--primary) / 0.1);
+    }
+}

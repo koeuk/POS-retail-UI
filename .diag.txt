@@ -1,0 +1,26 @@
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           1.6G  3.2M  1.6G   1% /run
+/dev/nvme0n1p6  139G  132G     0 100% /
+tmpfs           7.7G  192M  7.5G   3% /dev/shm
+tmpfs           5.0M   12K  5.0M   1% /run/lock
+efivarfs        192K  138K   50K  74% /sys/firmware/efi/efivars
+/dev/nvme0n1p1   96M   38M   59M  40% /boot/efi
+/dev/nvme0n1p5  113G   91G   23G  81% /media/koeuk/Drive
+tmpfs           1.6G  212K  1.6G   1% /run/user/1000
+/dev/nvme0n1p3  432G  392G   41G  91% /media/koeuk/DA020D59020D3C4F
+=== TMP TOP ===
+5.3M	/tmp/node-compile-cache
+456K	/tmp/unleash-repo-schema-v1-codeium-language-server.json
+364K	/tmp/unleash-backup-codeium-extension.json
+112K	/tmp/claude-1000
+24K	/tmp/pos-keep
+24K	/tmp/gitkraken
+8.0K	/tmp/node-jiti
+4.0K	/tmp/vscode-typescript1000
+4.0K	/tmp/systemd-private-1c33132b69154736afc75f07b316123c-upower.service-lIpkeI
+4.0K	/tmp/systemd-private-1c33132b69154736afc75f07b316123c-systemd-timesyncd.service-cVFPoc
+4.0K	/tmp/systemd-private-1c33132b69154736afc75f07b316123c-systemd-resolved.service-kyHveR
+4.0K	/tmp/systemd-private-1c33132b69154736afc75f07b316123c-systemd-oomd.service-Qss60C
+4.0K	/tmp/systemd-private-1c33132b69154736afc75f07b316123c-systemd-logind.service-wI02jE
+4.0K	/tmp/systemd-private-1c33132b69154736afc75f07b316123c-switcheroo-control.service-lu2NKh
+4.0K	/tmp/systemd-private-1c33132b69154736afc75f07b316123c-power-profiles-daemon.service-ulXICM

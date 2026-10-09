@@ -1,0 +1,33 @@
+/.phpunit.cache
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/auth.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+
+# Demo recordings are artifacts, not source.
+/demo
+
+# Scribe API docs. The source of truth is the controller annotations plus
+# .scribe/*.md (kept); everything below is `php artisan scribe:generate`
+# output and would only ever conflict between branches.
+/.scribe/endpoints.cache
+/public/vendor/scribe
+/resources/views/scribe

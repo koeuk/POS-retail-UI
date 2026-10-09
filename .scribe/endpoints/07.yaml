@@ -1,0 +1,70 @@
+name: Reports
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/v1/reports/summary
+    metadata:
+      custom: []
+      groupName: Reports
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Sales summary'
+      description: |-
+        The Reports screen as JSON. Defaults to the last 30 days, clamped to a
+        year; only completed, non-`myself` orders count, bucketed by business day.
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters:
+      from:
+        custom: []
+        name: from
+        description: Y-m-d.
+        required: false
+        example: '2026-08-01'
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      to:
+        custom: []
+        name: to
+        description: Y-m-d.
+        required: false
+        example: '2026-08-31'
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanQueryParameters:
+      from: '2026-08-01'
+      to: '2026-08-31'
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"from": "2026-08-01", "to": "2026-08-31", "totals": {"orders": 13, "sales": "232000.00", "items": 47, "basket": "17846.15"}, "by_day": [{"day": "2026-08-28", "orders": 5, "sales": "76000.00"}], "by_product": [{"product_name": "Wurkz", "qty": 9, "revenue": "18000.00"}], "by_payment": [{"method": "cash", "count": 7, "amount": "96000.00"}], "debts_outstanding": {"count": 8, "owed": "101000.00"}}'
+        headers: []
+        description: ''
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null

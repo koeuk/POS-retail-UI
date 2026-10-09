@@ -1,0 +1,165 @@
+name: Debts
+description: ''
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/v1/debts
+    metadata:
+      custom: []
+      groupName: Debts
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'List debts'
+      description: |-
+        Each row carries the whole story: customer, items, payments (any
+        deposit included).
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters:
+      'filter[state]':
+        custom: []
+        name: 'filter[state]'
+        description: '`open` (default — still owed) or `settled`.'
+        required: false
+        example: open
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      'filter[search]':
+        custom: []
+        name: 'filter[search]'
+        description: 'Order no., customer name or phone.'
+        required: false
+        example: GoJo
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanQueryParameters:
+      'filter[state]': open
+      'filter[search]': GoJo
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/v1/debts/{order_uuid}/settle'
+    metadata:
+      custom: []
+      groupName: Debts
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Settle a debt'
+      description: |-
+        Records money received; `paid_amount` is recomputed from the payments
+        ledger, so a double-submit cannot drift it. Paying more than is owed
+        is refused.
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {YOUR_AUTH_KEY}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      order_uuid:
+        custom: []
+        name: order_uuid
+        description: ''
+        required: true
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      order_uuid: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      amount:
+        custom: []
+        name: amount
+        description: 'Must be at least 0.01.'
+        required: true
+        example: 27
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      method:
+        custom: []
+        name: method
+        description: ''
+        required: true
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      reference_no:
+        custom: []
+        name: reference_no
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: 'n'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      amount: 27
+      method: architecto
+      reference_no: 'n'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"order_no": "S1-R1-260901-0001", "paid_amount": "15000.00", "outstanding": "0.00", "settled": true}'
+        headers: []
+        description: ''
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
