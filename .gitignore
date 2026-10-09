@@ -22,6 +22,10 @@ yarn-error.log
 /.vscode
 /.zed
 
+# Build output (Vite)
+/dist
+dist/
+
 # Demo recordings are artifacts, not source.
 /demo
 

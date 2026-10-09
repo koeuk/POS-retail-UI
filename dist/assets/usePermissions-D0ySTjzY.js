@@ -1,1 +1,0 @@
-import{B as t}from"./index-D4K7hFQp.js";function u(){const a=t();return{canAccess:s=>!!a.props.auth.can[s],may:(s,o)=>{var c,n;return!!((n=(c=a.props.auth.actions)==null?void 0:c[s])!=null&&n[o])}}}export{u};
