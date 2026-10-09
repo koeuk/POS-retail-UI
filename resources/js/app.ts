@@ -4,11 +4,9 @@ import { createInertiaApp, resolvePageComponent } from '@inertiajs/vue3';
 import { createPinia } from 'pinia';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
-import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 import { initTelegram } from './composables/useTelegram';
 import { setupMockApi } from './mock/api';
-import { Ziggy } from './ziggy';
 
 // Initialize mock API interceptors for offline POS and debt lookups
 setupMockApi();
@@ -21,7 +19,6 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue, Ziggy)
             // Pinia backs the POS cart; the admin pages do not use it.
             .use(createPinia())
             .mount(el);

@@ -371,7 +371,49 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
                 ]),
             };
 
-        case 'settings/Shop':
+        case 'Activity/Show': {
+            const match = path.match(/\/activity\/([^\/]+)/);
+            const activityId = match ? match[1] : '1';
+            return {
+                activity: {
+                    id: activityId,
+                    description: 'Created product "Coca-Cola Original 330ml Can"',
+                    causer: { name: 'Sokha Rith (Admin)' },
+                    created_at: '2026-10-09T18:00:00Z',
+                    properties: {
+                        old: {},
+                        attributes: { name: 'Coca-Cola Original 330ml Can', sku: 'COKE-330', sell_price: '1.25' },
+                    },
+                },
+            };
+        }
+
+        case 'Menu/Show': {
+            const match = path.match(/\/menu\/([^\/]+)/);
+            const idOrUuid = match ? match[1] : '';
+            const product =
+                mockProducts.find((p) => p.uuid === idOrUuid || String(p.id) === idOrUuid) ??
+                mockProducts[0];
+            return {
+                product,
+                category: mockCategories.find((c) => c.id === product.category_id),
+            };
+        }
+
+        case 'auth/Login':
+            return {
+                canResetPassword: true,
+                status: q.status || null,
+            };
+
+        case 'auth/ForgotPassword':
+        case 'auth/ResetPassword':
+        case 'auth/ConfirmPassword':
+        case 'auth/VerifyEmail':
+        case 'auth/VerifyOtp':
+            return {
+                status: q.status || null,
+            };
             return {
                 shop: {
                     name: 'Smile Mart Cambodia',
@@ -428,7 +470,9 @@ function matchPathToComponent(path: string): string {
     if (clean === '/reports') return 'Reports/Index';
     if (clean === '/consumption') return 'Consumption/Index';
     if (clean === '/menu') return 'Menu/Index';
+    if (clean.startsWith('/menu/')) return 'Menu/Show';
     if (clean === '/activity') return 'Activity/Index';
+    if (clean.startsWith('/activity/')) return 'Activity/Show';
     if (clean.startsWith('/settings/shop')) return 'settings/Shop';
     if (clean.startsWith('/settings/profile')) return 'settings/Profile';
     if (clean.startsWith('/settings/password')) return 'settings/Password';
@@ -714,6 +758,16 @@ export const Link = defineComponent({
     },
     setup(props, { slots, attrs }) {
         function onClick(e: MouseEvent) {
+            // Allow external URLs, mailto:, and anchor links to work normally
+            if (
+                props.href.startsWith('http://') ||
+                props.href.startsWith('https://') ||
+                props.href.startsWith('mailto:') ||
+                props.href.startsWith('#')
+            ) {
+                return;
+            }
+
             if (e.metaKey || e.ctrlKey || e.shiftKey) return;
             e.preventDefault();
 
