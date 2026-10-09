@@ -1,13 +1,17 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/vue3';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import { createInertiaApp, resolvePageComponent } from '@inertiajs/vue3';
 import { createPinia } from 'pinia';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
-import { ZiggyVue } from '../../vendor/tightenco/ziggy';
+import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 import { initTelegram } from './composables/useTelegram';
+import { setupMockApi } from './mock/api';
+import { Ziggy } from './ziggy';
+
+// Initialize mock API interceptors for offline POS and debt lookups
+setupMockApi();
 
 const appName = import.meta.env.VITE_APP_NAME || 'POS Retail';
 
@@ -17,7 +21,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue)
+            .use(ZiggyVue, Ziggy)
             // Pinia backs the POS cart; the admin pages do not use it.
             .use(createPinia())
             .mount(el);
@@ -28,9 +32,8 @@ createInertiaApp({
     },
 });
 
-// This will set light / dark mode on page load...
+// Set light / dark mode on page load
 initializeTheme();
 
-// Viewport height, safe-area insets and the native back button, when the app
-// is running inside Telegram. A no-op in a normal browser.
+// Telegram Web App viewport helper
 initTelegram();
