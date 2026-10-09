@@ -1,186 +1,132 @@
-# POS Retail
+# POS Retail — Offline-First Cambodian Retail Management & POS
 
-An offline-first point-of-sale and back-office for a Cambodian retail shop. Riel-native
-pricing, pack sizes (can / six-pack / case sold as one product), customer debt tabs, a
-public QR menu, and per-store stock.
+A modern, responsive, offline-first Point of Sale (POS) and retail management Single Page Application (SPA) designed specifically for retail shops, grocery stores, and mini-marts in **Cambodia**.
 
-Laravel 12 · Inertia · Vue 3 + TypeScript · Tailwind · MySQL
+Built with **Vue 3**, **TypeScript**, **Tailwind CSS**, and **Vite** — running completely standalone with rich static mock data arrays.
 
 ---
 
-## Setup after cloning
+## 1. Project Purpose & Vision
 
-### Requirements
+In Cambodia, retail businesses encounter distinct operational realities that off-the-shelf Western POS software cannot handle:
 
-| Tool | Version | Notes |
-| --- | --- | --- |
-| PHP | 8.2+ | with `pdo_mysql` |
-| Composer | 2.x | |
-| Node | 22 | what CI pins; npm 10+ |
-| MySQL | 8.x | or MariaDB |
+1. **Native Dual-Currency Support (USD & Khmer Riel ៛)**:
+   - Stores in Cambodia transact interchangeably in **USD ($)** and **Khmer Riel (៛)** (default exchange rate: `1 USD = 4,100 KHR`).
+   - Prices can be displayed and paid in either currency. Cashiers frequently receive USD and return change in Riel.
+   - Riel has no sub-units/cents; values round to physical cash notes (100៛, 500៛, 1,000៛, 5,000៛, 10,000៛, etc.).
 
-Check your PHP has the database driver before starting — a missing one is the most
-common first-run failure:
+2. **Pack Size & Unit Hierarchy (Can / Six-Pack / Case)**:
+   - A shop sells an individual beverage can, a 6-pack, or a 24-can case from the same physical item.
+   - Pack sizes link directly to base unit quantities, ensuring accurate real-time inventory deductions without duplicating product SKUs.
 
-```bash
-php -m | grep pdo_mysql
+3. **Customer Credit & Debt Tabs (សៀវភៅជំពាក់)**:
+   - Neighborhood retail culture commonly relies on customer credit tabs.
+   - The system tracks outstanding balances, deposit down-payments, partial repayments, and full order settlement receipts.
+
+4. **Offline-First Till Operation**:
+   - Unstable internet in local markets never stops sales.
+   - The POS register saves transactions immediately into local IndexedDB (via Dexie), enabling smooth, uninterrupted scanning and checkout.
+
+5. **Multi-Store & Per-Branch Inventory**:
+   - Stock counts are tracked per store branch rather than a single global warehouse.
+
+---
+
+## 2. Tech Stack
+
+- **Framework**: [Vue 3](https://vuejs.org/) (Composition API, `<script setup>`)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool**: [Vite 6](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with PostCSS & Autoprefixer
+- **State Management**: [Pinia](https://pinia.vuejs.org/) (Cart and Register state)
+- **Local Storage / Offline DB**: [Dexie.js](https://dexie.org/) (IndexedDB wrapper)
+- **Component Primitives**: [Radix Vue](https://www.radix-vue.com/) / [Reka UI](https://reka-ui.com/), [Headless UI](https://headlessui.com/)
+- **Icons**: [Lucide Icons](https://lucide.dev/)
+- **HTTP / Mocking**: Client-side in-memory mock store with realistic Cambodian retail data
+
+---
+
+## 3. Key Feature Modules
+
+| Module | Route | Key Functionality |
+| :--- | :--- | :--- |
+| **POS Register** | `/pos` | Fast touch/barcode till, product grid, cart calculations, KHQR & cash payment modal, offline queueing |
+| **Dashboard** | `/dashboard` | Today vs yesterday sales, 7-day trend chart, low stock alerts, oversold items, recent orders |
+| **Products** | `/products` | Product catalog, pack sizes (unit/six-pack/case), cost & sell pricing, barcode/SKU, category assignment |
+| **Orders** | `/orders` | Complete order history, sale types (customer, debt, internal), invoice details, receipt printing |
+| **Debt Tabs** | `/debts` | Customer credit tabs, outstanding balances, partial repayments, settlement flow |
+| **Inventory** | `/inventory` | Per-store stock quantities, low-stock thresholds, stock adjustment history |
+| **Customers** | `/customers` | Customer profiles, phone numbers, total spend, loyalty points |
+| **Stores & Registers** | `/stores` | Store branches, active registers / cash counters |
+| **Vendors** | `/vendors` | Supplier directory, contact information, supplied items |
+| **Reports** | `/reports` | Revenue metrics, sales by category, sales by payment method, exportable summaries |
+| **Public Menu** | `/menu` | Public-facing digital product catalog accessible via QR code |
+| **Shop Settings** | `/settings` | Shop profile, dual-currency exchange rate, KHQR payment configuration, theme toggle (Light / Dark) |
+
+---
+
+## 4. Project Structure
+
+```
+POS-retail-UI/
+├── index.html              # Standalone SPA HTML entry point
+├── vite.config.ts          # Vite configuration with Vue plugin & path aliases
+├── tailwind.config.js      # Custom theme colors, typography & layout styling
+├── package.json            # Scripts & dependencies
+├── README.md               # Unified project documentation
+├── public/                 # Static brand assets (logo, favicon)
+│   ├── favicon.ico
+│   └── logo.svg
+└── resources/
+    ├── css/
+    │   └── app.css         # Tailwind directives & CSS design tokens
+    └── js/
+        ├── app.ts          # App bootstrap, Pinia setup, plugins
+        ├── components/     # UI widgets (AppSidebar, AppHeader, Modals, Tables, Charts)
+        ├── composables/    # Reusable hooks (useCurrency, usePermissions, useAppearance)
+        ├── layouts/        # AppLayout, SettingsLayout, AuthSimpleLayout
+        ├── mock/           # Mock data arrays & client-side routing adapter
+        │   ├── data.ts     # Realistic Cambodian retail mock arrays (Products, Orders, etc.)
+        │   ├── inertia.ts  # Client-side SPA navigation & reactive state manager
+        │   └── api.ts      # Offline POS sync & fetch interceptors
+        ├── pages/          # Full page views (Dashboard, Pos, Products, Orders, etc.)
+        ├── Pos/            # Specialized POS till components, barcode scanner, cart
+        └── types/          # TypeScript domain models & interfaces
 ```
 
-### Steps
+---
+
+## 5. Getting Started
+
+### Prerequisites
+- **Node.js**: `20.x` or `22.x`
+- **npm**: `10.x` or later
+
+### Installation & Execution
 
 ```bash
-# 1. Install dependencies
-composer install
-npm ci
+# 1. Install frontend dependencies
+npm install
 
-# 2. Environment
-cp .env.example .env
-php artisan key:generate
+# 2. Launch the local development server (with Hot Module Replacement)
+npm run dev
+
+# 3. Open in your browser
+http://localhost:5173
 ```
 
-**3. Point `.env` at your database.** `.env.example` ships with `DB_CONNECTION=sqlite`,
-but this project runs on MySQL — replace that single line with a full block:
-
-```dotenv
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=pos_retail
-DB_USERNAME=root
-DB_PASSWORD=your_password
-```
-
-Create the schema, then let Laravel fill it:
+### Production Build
 
 ```bash
-mysql -u root -p -e "CREATE DATABASE pos_retail;"
-
-# 4. Tables and starting data
-php artisan migrate
-php artisan db:seed
-
-# 5. Product images need the public disk exposed
-php artisan storage:link
-
-# 6. Compile the frontend
+# Build optimized static assets for production
 npm run build
-```
 
-Serve it with `php artisan serve` and sign in at http://127.0.0.1:8000.
-
-### Accounts created by the seeder
-
-| Email | Password | Role |
-| --- | --- | --- |
-| `admin@gmail.com` | `12345678` | Admin |
-| `manager@gmail.com` | `12345678` | Manager |
-| `cashier@gmail.com` | `12345678` | Cashier |
-
-The seeder creates one store, one register, and the shop settings — but **no catalogue**,
-since products are the shop's own. For a demo shelf to click around:
-
-```bash
-php artisan db:seed --class=DemoSeeder
-```
-
-### Two things that bite after a clone
-
-- **`/docs` returns 500 until Scribe generates.** The API reference renders from files
-  that are gitignored. Run `php artisan scribe:generate` once after cloning, and again
-  after changing any annotation on an API controller.
-- **`public/build` is gitignored**, so the app serves no CSS or JS until `npm run build`.
-  There is usually no vite dev server running, which means **every change to a `.vue` or
-  `.ts` file needs another `npm run build`** to appear in the browser.
-
----
-
-## Day-to-day commands
-
-```bash
-php artisan serve        # app on :8000
-npm run dev              # vite with hot reload (then assets come from vite, not build/)
-composer dev             # server + queue + logs + vite together
-
-./vendor/bin/phpunit     # tests
-npm run lint             # eslint --fix
-npm run format           # prettier over resources/
+# Preview the production build locally
+npm run preview
 ```
 
 ---
 
-## Project structure
+## 6. License
 
-```
-app/
-├── Enums/           Permission, Role, Action, OrderStatus, PaymentMethod, SaleType…
-│                    The vocabulary the whole app agrees on. Adding a feature area
-│                    starts with a Permission case here.
-├── Http/
-│   ├── Controllers/ Web controllers return Inertia pages; Controllers/Api/ returns JSON
-│   ├── Middleware/  HandleInertiaRequests shares auth.can with every page
-│   └── Requests/    Validation, and the guards on who may mint an admin
-├── Models/          Product, Order, Customer, Stock, Store, User, Activity…
-│   └── Concerns/    RecordsActivity — the audit trait models opt into
-├── Policies/        Per-model authorisation, all routed through hasPermission/mayDo
-├── Services/        OrderTotals, OrderSyncService (offline replay), SalesReporter…
-├── Observers/       ActivityObserver — model auditing
-├── Listeners/       LogAuthenticationActivity — login/logout trail
-└── Support/         AuditLog, Currency, PerPage — small shared helpers
-
-resources/js/
-├── pages/           One folder per screen (Products/, Orders/, Pos/, Reports/…).
-│                    Inertia maps a controller's page name straight to a file here.
-├── components/      Shared UI; components/ui/ is the shadcn-vue primitive layer
-├── composables/     usePermissions, useCurrency, useTelegram, useIsMobile…
-├── layouts/         AppLayout (the shell), auth and settings layouts
-└── types/           Shared TypeScript shapes (Product, Order, Paginated<T>…)
-
-routes/              web.php · api.php (token API) · auth.php · settings.php
-database/
-├── migrations/      Schema history
-└── seeders/         DatabaseSeeder (store, users, settings) · DemoSeeder (catalogue)
-docs/                roles-and-permissions.md · api.md · api-guide.md
-```
-
----
-
-## Conventions worth knowing before you edit
-
-These are the rules the codebase already follows; breaking them causes subtle bugs
-rather than loud errors.
-
-**Access control has one path.** Feature access is always
-`$user->hasPermission(Permission::X)` — never a role check like `isManager()`. A new
-feature area is four edits: a `Permission` enum case, `permission:<key>` route
-middleware, a policy using `hasPermission`, and `requires: '<key>'` on the nav item.
-Hiding a button is never the wall; the route middleware and the policy are.
-**Read [docs/roles-and-permissions.md](docs/roles-and-permissions.md) before touching
-any of it.**
-
-**Stock is per-store.** It lives in the `stocks` table. There is no `stock_qty` column
-on products — sum or scope it explicitly.
-
-**Money uses the shop's currency minor factor.** Riel has none, so never assume cents.
-
-**Lists paginate through one path:** `App\Support\PerPage` plus the shared
-`Pagination.vue`, with page-size options arriving as shared props.
-
-**The audit trail has two doors.** Model changes go through the `RecordsActivity` trait
-with an explicit `$auditable` field list — never `logAll()`, so unlisted columns like
-password hashes stay out of the log. Event-shaped entries (money, auth, access) go
-through `App\Support\AuditLog`, never a raw `activity()` call in a controller.
-
-**The token API reuses the web permission gates.** Never add API-only auth logic. It is
-documented in [docs/api.md](docs/api.md) with an integrator walkthrough in
-[docs/api-guide.md](docs/api-guide.md).
-
----
-
-## Tests
-
-```bash
-./vendor/bin/phpunit
-```
-
-CI runs the suite on every push to `main` and `develop` (`.github/workflows/tests.yml`),
-alongside a lint workflow.
+This project is licensed under the Apache-2.0 License.
