@@ -30,8 +30,6 @@
         "@vueuse/core": "^12.8.2",
         "autoprefixer": "^10.4.20",
         "axios": "^1.19.0",
-        "baseline-browser-mapping": "^2.11.28",
-        "caniuse-lite": "^1.0.30001815",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "concurrently": "^9.0.1",
