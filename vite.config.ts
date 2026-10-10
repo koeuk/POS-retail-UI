@@ -18,7 +18,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './resources/js'),
-            '@inertiajs/vue3': path.resolve(__dirname, './resources/js/mock/inertia.ts'),
+            '@inertiajs/vue3': path.resolve(__dirname, './resources/js/mock/router.ts'),
         },
     },
     css: {

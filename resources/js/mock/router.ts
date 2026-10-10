@@ -913,3 +913,5 @@ export function createSpaApp(options: {
         console.error('[Inertia Mock] No loader found for:', `../pages/${initialComponent}.vue`);
     }
 }
+
+export const createInertiaApp = createSpaApp;
