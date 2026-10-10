@@ -501,7 +501,7 @@ async function navigateTo(targetUrl: string, options: any = {}) {
     currentComponentName.value = componentName;
 
     // Load component
-    const pageLoader = registeredPages[`./pages/${componentName}.vue`];
+    const pageLoader = registeredPages[`../pages/${componentName}.vue`];
     if (pageLoader) {
         const mod = await pageLoader();
         currentComponent.value = markRaw(mod.default);
@@ -847,7 +847,7 @@ export async function resolvePageComponent(path: string, pages: Record<string, (
     return pageLoader();
 }
 
-export function createInertiaApp(options: {
+export function createSpaApp(options: {
     title?: (title: string) => string;
     resolve: (name: string) => Promise<any>;
     setup: (context: { el: HTMLElement; App: any; props: any; plugin: any }) => void;
@@ -857,7 +857,7 @@ export function createInertiaApp(options: {
         appTitleFormatter = options.title;
     }
 
-    registeredPages = import.meta.glob<any>('./pages/**/*.vue');
+    registeredPages = import.meta.glob<any>('../pages/**/*.vue');
 
     // Handle browser back/forward buttons
     window.addEventListener('popstate', () => {
@@ -885,7 +885,7 @@ export function createInertiaApp(options: {
     console.log('[Inertia Mock] Initial component:', initialComponent);
     console.log('[Inertia Mock] Registered pages:', Object.keys(registeredPages));
 
-    const initialLoader = registeredPages[`./pages/${initialComponent}.vue`];
+    const initialLoader = registeredPages[`../pages/${initialComponent}.vue`];
     console.log('[Inertia Mock] Initial loader found:', !!initialLoader);
     
     if (initialLoader) {
@@ -910,6 +910,6 @@ export function createInertiaApp(options: {
             console.error('[Inertia Mock] Error loading component:', err);
         });
     } else {
-        console.error('[Inertia Mock] No loader found for:', `./pages/${initialComponent}.vue`);
+        console.error('[Inertia Mock] No loader found for:', `../pages/${initialComponent}.vue`);
     }
 }
