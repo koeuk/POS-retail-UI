@@ -608,7 +608,7 @@ export const router = {
     reload(options: any = {}) {
         return navigateTo(currentPath.value + currentSearch.value, options);
     },
-    on() {
+    on(_event?: string, _callback?: (...args: any[]) => any) {
         return () => {};
     },
     cancel() {},
@@ -889,6 +889,7 @@ export function createSpaApp(options: {
     // Root wrapper component
     const AppWrapper = defineComponent({
         name: 'InertiaAppRoot',
+        inheritAttrs: false,
         setup() {
             return () => {
                 if (!currentComponent.value) return null;
@@ -926,6 +927,8 @@ export function createSpaApp(options: {
                         app.component('Link', Link);
                         // eslint-disable-next-line vue/no-reserved-component-names
                         app.component('Head', Head);
+                        // Make route() available in templates (mirrors Ziggy behaviour)
+                        app.config.globalProperties.route = route;
                     },
                 },
             });
