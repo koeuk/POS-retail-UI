@@ -1,36 +1,34 @@
 import '../css/app.css';
 
-import { createInertiaApp, resolvePageComponent } from '@inertiajs/vue3';
 import { createPinia } from 'pinia';
-import type { DefineComponent } from 'vue';
-import { createApp, h } from 'vue';
+import { createApp } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
 import { initTelegram } from './composables/useTelegram';
 import { setupMockApi } from './mock/api';
+import { createInertiaApp } from './mock/inertia';
 
 // Initialize mock API interceptors for offline POS and debt lookups
 setupMockApi();
 
 const appName = import.meta.env.VITE_APP_NAME || 'POS Retail';
 
-createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
-    resolve: (name) => resolvePageComponent(`./pages/${name}.vue`, import.meta.glob<DefineComponent>('./pages/**/*.vue')),
-    setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
-            .use(plugin)
-            // Pinia backs the POS cart; the admin pages do not use it.
-            .use(createPinia())
-            .mount(el);
-    },
-    progress: {
-        // Matches --primary so the loading bar reads as part of the theme.
-        color: '#1c6949',
-    },
-});
-
 // Set light / dark mode on page load
 initializeTheme();
 
 // Telegram Web App viewport helper
 initTelegram();
+
+// Bootstrap standalone SPA with mock Inertia adapter
+createInertiaApp({
+    title: (title) => (title ? `${title} - ${appName}` : appName),
+    resolve: (name) => import(`./pages/${name}.vue`),
+    setup({ el, App, props, plugin }) {
+        const app = createApp(App, props);
+        app.use(plugin);
+        app.use(createPinia());
+        app.mount(el);
+    },
+    progress: {
+        color: '#1c6949',
+    },
+});
