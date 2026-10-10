@@ -5,7 +5,6 @@ import {
     h,
     markRaw,
     onMounted,
-    onUnmounted,
     reactive,
     ref,
     shallowRef,
@@ -901,7 +900,9 @@ export function createSpaApp(options: {
                 props: { initialPage: page },
                 plugin: {
                     install(app: any) {
+                        // eslint-disable-next-line vue/no-reserved-component-names
                         app.component('Link', Link);
+                        // eslint-disable-next-line vue/no-reserved-component-names
                         app.component('Head', Head);
                     },
                 },

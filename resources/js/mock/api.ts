@@ -6,7 +6,6 @@ import {
     mockOrders,
     mockProducts,
     mockSharedData,
-    mockStores,
 } from './data';
 
 /**
