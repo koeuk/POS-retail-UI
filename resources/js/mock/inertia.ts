@@ -857,7 +857,7 @@ export function createInertiaApp(options: {
         appTitleFormatter = options.title;
     }
 
-    registeredPages = import.meta.glob<any>('../pages/**/*.vue');
+    registeredPages = import.meta.glob<any>('./pages/**/*.vue');
 
     // Handle browser back/forward buttons
     window.addEventListener('popstate', () => {
@@ -882,9 +882,15 @@ export function createInertiaApp(options: {
     const initialComponent = matchPathToComponent(currentPath.value);
     currentComponentName.value = initialComponent;
 
+    console.log('[Inertia Mock] Initial component:', initialComponent);
+    console.log('[Inertia Mock] Registered pages:', Object.keys(registeredPages));
+
     const initialLoader = registeredPages[`./pages/${initialComponent}.vue`];
+    console.log('[Inertia Mock] Initial loader found:', !!initialLoader);
+    
     if (initialLoader) {
         initialLoader().then((mod) => {
+            console.log('[Inertia Mock] Component loaded:', mod);
             currentComponent.value = markRaw(mod.default);
             const initialProps = resolveRouteProps(initialComponent, currentPath.value);
             Object.assign(currentPageProps, initialProps);
@@ -900,6 +906,10 @@ export function createInertiaApp(options: {
                     },
                 },
             });
+        }).catch(err => {
+            console.error('[Inertia Mock] Error loading component:', err);
         });
+    } else {
+        console.error('[Inertia Mock] No loader found for:', `./pages/${initialComponent}.vue`);
     }
 }
