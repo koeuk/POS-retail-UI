@@ -92,7 +92,6 @@ The project is built as a modern, high-performance, responsive web application u
   - `/inventory` (Store stock levels & replenishment)
   - `/customers` (Customer profiles & loyalty)
   - `/stores` (Store branches & registers)
-  - `/vendors` (Supplier contacts)
   - `/reports` (Sales breakdown & analytics)
   - `/settings/*` (Shop profile, currency, payments, appearance)
 

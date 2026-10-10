@@ -25,7 +25,7 @@ This plan completes the migration to a standalone SPA by refining the mock API i
       - Supports parameterized routes (e.g., `route('products.show', {product: 'uuid'})`)
       - Made route() globally available via window object
       - Handles all routes used throughout the application including:
-        - Dashboard, POS, Products, Orders, Debts, Inventory, Categories, Customers, Stores, Users, Vendors
+        - Dashboard, POS, Products, Orders, Debts, Inventory, Categories, Customers, Stores, Users
         - Reports, Consumption, Menu, Activity
         - Settings pages (Shop, Profile, Password, Payments, Appearance)
         - Auth pages (Login, Password Reset, Verify Email/OTP)

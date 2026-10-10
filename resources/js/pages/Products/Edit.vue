@@ -11,7 +11,6 @@ import { computed } from 'vue';
 const props = defineProps<{
     product: Product;
     categories: Category[];
-    vendors: Array<{ id: number; name: string; is_active: boolean }>;
     packs: Array<{ id: number; name: string; units_per_pack: number; sell_price: string; is_active: boolean }>;
     stores: Array<{ id: number; name: string }>;
     stocks: Stock[];
@@ -70,7 +69,7 @@ const tone = (s: Stock) => {
                 </div>
             </section>
 
-            <ProductForm :categories="categories" :vendors="vendors" :product="product" :packs="packs" :stores="stores" :on-hand="onHand" />
+            <ProductForm :categories="categories" :product="product" :packs="packs" :stores="stores" :on-hand="onHand" />
         </div>
     </AppLayout>
 </template>

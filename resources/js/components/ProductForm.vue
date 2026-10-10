@@ -26,8 +26,6 @@ interface PackRow {
 const props = withDefaults(
     defineProps<{
         categories: Category[];
-        /** Suppliers to pick from; the product's own is kept even if inactive. */
-        vendors?: Array<{ id: number; name: string; is_active: boolean }>;
         product?: Product;
         /** Larger sizes already saved against this product. */
         packs?: Array<{ id: number; name: string; units_per_pack: number; sell_price: string }>;
@@ -35,7 +33,7 @@ const props = withDefaults(
         stores?: Array<{ id: number; name: string }>;
         onHand?: number;
     }>(),
-    { vendors: () => [], packs: () => [], stores: () => [], onHand: 0 },
+    { packs: () => [], stores: () => [], onHand: 0 },
 );
 
 const isEdit = computed(() => !!props.product);
@@ -59,11 +57,6 @@ const priceStep = computed(() => (currency.value.decimals > 0 ? '0.01' : '1'));
 /** Sentinel for "received as single units", since a Select needs a string. */
 const SINGLE = 'single';
 
-/** Sentinel for "no vendor" — same reason. */
-const NO_VENDOR = 'none';
-
-const vendorChoices = computed(() => props.vendors.filter((v) => v.is_active || v.id === props.product?.vendor_id));
-
 /** Fields that only mean anything once the product exists. */
 /*
  * Opening stock, entered the way it arrives: two cases of twenty-four and one
@@ -81,7 +74,6 @@ const RECEIPT_KEYS = ['add_stock', 'add_stock_pack_id', 'add_stock_units_each', 
 
 const form = useForm({
     category_id: props.product ? String(props.product.category_id) : '',
-    vendor_id: props.product?.vendor_id ? String(props.product.vendor_id) : NO_VENDOR,
     packs: props.packs.map((p): PackRow => ({ id: p.id, name: p.name, units_per_pack: p.units_per_pack, sell_price: forEditing(p.sell_price) })),
     name: props.product?.name ?? '',
     sku: props.product?.sku ?? '',
@@ -245,7 +237,6 @@ function submit() {
         form.transform((data) => ({
             ...data,
             _method: 'put',
-            vendor_id: data.vendor_id === NO_VENDOR ? null : data.vendor_id,
             // SINGLE is a sentinel the Select needs; the server wants a real
             // pack id or nothing at all.
             add_stock_pack_id: data.add_stock_pack_id === SINGLE ? null : data.add_stock_pack_id,
@@ -271,8 +262,6 @@ function submit() {
      */
     form.transform((data) => {
         const payload: Record<string, unknown> = { ...data };
-
-        payload.vendor_id = data.vendor_id === NO_VENDOR ? null : data.vendor_id;
 
         for (const key of RECEIPT_KEYS) delete payload[key];
 
@@ -311,22 +300,6 @@ function submit() {
                             </SelectContent>
                         </Select>
                         <InputError :message="form.errors.category_id" />
-                    </div>
-
-                    <div v-if="vendors.length" class="grid gap-2">
-                        <Label for="vendor">Vendor</Label>
-                        <Select v-model="form.vendor_id">
-                            <SelectTrigger id="vendor">
-                                <SelectValue placeholder="Who you buy it from" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem :value="NO_VENDOR">No vendor</SelectItem>
-                                <SelectItem v-for="v in vendorChoices" :key="v.id" :value="String(v.id)">
-                                    {{ v.name }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <InputError :message="form.errors.vendor_id" />
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">

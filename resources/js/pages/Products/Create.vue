@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import type { Category } from '@/types';
 import { Head } from '@inertiajs/vue3';
 
-defineProps<{ categories: Category[]; vendors: Array<{ id: number; name: string; is_active: boolean }> }>();
+defineProps<{ categories: Category[] }>();
 </script>
 
 <template>
@@ -20,7 +20,7 @@ defineProps<{ categories: Category[]; vendors: Array<{ id: number; name: string;
         <div class="px-2.5 py-6 md:px-8">
             <PageHeader title="New product" description="Add an item to the catalogue. It appears on the POS grid as soon as it is active." />
 
-            <ProductForm :categories="categories" :vendors="vendors" />
+            <ProductForm :categories="categories" />
         </div>
     </AppLayout>
 </template>

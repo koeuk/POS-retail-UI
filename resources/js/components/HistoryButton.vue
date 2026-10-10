@@ -35,7 +35,6 @@ const routeNames: Record<string, string> = {
     Store: 'stores.history',
     Stock: 'inventory.history',
     User: 'users.history',
-    Vendor: 'vendors.history',
 };
 
 const href = computed(() => route(routeNames[props.subjectType], { subjectId: props.subjectId }));

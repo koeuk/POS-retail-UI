@@ -58,7 +58,6 @@ In Cambodia, retail businesses encounter distinct operational realities that off
 | **Inventory** | `/inventory` | Per-store stock quantities, low-stock thresholds, stock adjustment history |
 | **Customers** | `/customers` | Customer profiles, phone numbers, total spend, loyalty points |
 | **Stores & Registers** | `/stores` | Store branches, active registers / cash counters |
-| **Vendors** | `/vendors` | Supplier directory, contact information, supplied items |
 | **Reports** | `/reports` | Revenue metrics, sales by category, sales by payment method, exportable summaries |
 | **Public Menu** | `/menu` | Public-facing digital product catalog accessible via QR code |
 | **Shop Settings** | `/settings` | Shop profile, dual-currency exchange rate, KHQR payment configuration, theme toggle (Light / Dark) |

@@ -11,7 +11,6 @@ import {
     ReceiptText,
     ScanBarcode,
     Shapes,
-    Truck,
     Users,
     UsersRound,
     Utensils,
@@ -49,7 +48,6 @@ export const navGroups: NavGroup[] = [
         label: 'People',
         items: [
             { title: 'Customers', href: '/customers', icon: UsersRound, requires: 'customers' },
-            { title: 'Vendors', href: '/vendors', icon: Truck, requires: 'vendors' },
             { title: 'Staff', href: '/users', icon: Users, requires: 'users' },
             { title: 'Activity Log', href: '/activity', icon: History, requires: 'activity' },
             /*

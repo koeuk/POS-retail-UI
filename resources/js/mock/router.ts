@@ -21,7 +21,6 @@ import {
     mockStocks,
     mockStores,
     mockUsers,
-    mockVendors,
     paginate,
 } from './data';
 
@@ -74,11 +73,6 @@ const routeMap: Record<string, string> = {
     'users.store': '/users',
     'users.update': '/users/{user}',
     'users.destroy': '/users/{user}',
-    'vendors.index': '/vendors',
-    'vendors.show': '/vendors/{vendor}',
-    'vendors.store': '/vendors',
-    'vendors.update': '/vendors/{vendor}',
-    'vendors.destroy': '/vendors/{vendor}',
     'reports.index': '/reports',
     'consumption.index': '/consumption',
     'menu.index': '/menu',
@@ -204,7 +198,6 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
         case 'Products/Create':
             return {
                 categories: mockCategories,
-                vendors: mockVendors,
             };
 
         case 'Products/Edit':
@@ -217,7 +210,6 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
             return {
                 product,
                 categories: mockCategories,
-                vendors: mockVendors,
                 stockHistory: [],
             };
         }
@@ -317,21 +309,7 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
             return {
                 users: mockUsers,
                 stores: mockStores,
-                vendors: mockVendors,
             };
-
-        case 'Vendors/Index':
-            return {
-                vendors: mockVendors,
-            };
-
-        case 'Vendors/Show': {
-            const vendor = mockVendors[0];
-            return {
-                vendor,
-                products: mockProducts.filter((p) => p.vendor_id === vendor.id),
-            };
-        }
 
         case 'Reports/Index':
             return {
@@ -478,8 +456,6 @@ function matchPathToComponent(path: string): string {
     if (clean === '/customers') return 'Customers/Index';
     if (clean === '/stores') return 'Stores/Index';
     if (clean === '/users') return 'Users/Index';
-    if (clean === '/vendors') return 'Vendors/Index';
-    if (clean.startsWith('/vendors/')) return 'Vendors/Show';
     if (clean === '/reports') return 'Reports/Index';
     if (clean === '/consumption') return 'Consumption/Index';
     if (clean === '/menu') return 'Menu/Index';

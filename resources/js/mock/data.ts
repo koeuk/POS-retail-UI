@@ -7,7 +7,6 @@ import type {
     Stock,
     Store,
     User,
-    Vendor,
 } from '@/types';
 import { Ziggy } from '../ziggy';
 
@@ -22,7 +21,6 @@ export const mockUser: User = {
     email: 'admin@posretail.kh',
     role: 'admin',
     store_id: null,
-    vendor_id: null,
     is_active: true,
     created_at: '2026-01-01T08:00:00Z',
     updated_at: '2026-10-09T08:00:00Z',
@@ -37,7 +35,6 @@ export const mockUsers: User[] = [
         email: 'manager@posretail.kh',
         role: 'manager',
         store_id: 1,
-        vendor_id: null,
         is_active: true,
         created_at: '2026-02-15T09:00:00Z',
     },
@@ -48,7 +45,6 @@ export const mockUsers: User[] = [
         email: 'cashier@posretail.kh',
         role: 'cashier',
         store_id: 1,
-        vendor_id: null,
         is_active: true,
         created_at: '2026-03-01T10:00:00Z',
     },
@@ -59,7 +55,6 @@ export const mockUsers: User[] = [
         email: 'dara@posretail.kh',
         role: 'cashier',
         store_id: 2,
-        vendor_id: null,
         is_active: true,
         created_at: '2026-04-10T11:00:00Z',
     },
@@ -74,7 +69,6 @@ export const mockSharedData: SharedData = {
     auth: {
         user: mockUser,
         store_name: 'Main Store (BKK1)',
-        vendor_name: null,
         can: {
             accessAdmin: true,
             manage: true,
@@ -88,7 +82,6 @@ export const mockSharedData: SharedData = {
             inventory: true,
             stores: true,
             users: true,
-            vendors: true,
             reports: true,
             activity: true,
             consumption: true,
@@ -103,7 +96,6 @@ export const mockSharedData: SharedData = {
             inventory: { adjust: true, transfer: true },
             stores: { create: true, edit: true, delete: true },
             users: { create: true, edit: true, delete: true },
-            vendors: { create: true, edit: true, delete: true },
             categories: { create: true, edit: true, delete: true },
         },
     },
@@ -167,52 +159,6 @@ export const mockCategories: Category[] = [
 ];
 
 /* -------------------------------------------------------------------------- */
-/* Vendors                                                                    */
-/* -------------------------------------------------------------------------- */
-
-export const mockVendors: Vendor[] = [
-    {
-        id: 1,
-        uuid: 'vnd-coca-cola',
-        name: 'Cambodia Beverage Company (Coca-Cola)',
-        contact_name: 'Mr. Seng Visal',
-        phone: '+855 12 334 455',
-        email: 'orders@cbccola.com.kh',
-        address: 'Special Economic Zone, Phnom Penh',
-        notes: 'Delivery every Tuesday & Friday morning.',
-        is_active: true,
-        products_count: 3,
-        users_count: 0,
-    },
-    {
-        id: 2,
-        uuid: 'vnd-cbrewing',
-        name: 'Cambrew Ltd (Angkor Beer)',
-        contact_name: 'Ms. Kim Sreyneang',
-        phone: '+855 11 889 900',
-        email: 'sales@cambrew.com.kh',
-        address: 'Sihanoukville & Phnom Penh Depot',
-        notes: 'Empties return required for kegs/crates.',
-        is_active: true,
-        products_count: 2,
-        users_count: 0,
-    },
-    {
-        id: 3,
-        uuid: 'vnd-vital',
-        name: 'N.V.C. Corporation (Vital Water)',
-        contact_name: 'Mr. Chea Sambath',
-        phone: '+855 23 880 880',
-        email: 'order@vital.com.kh',
-        address: '#888 Russian Blvd, Phnom Penh',
-        notes: 'Free delivery for orders above $50.',
-        is_active: true,
-        products_count: 2,
-        users_count: 0,
-    },
-];
-
-/* -------------------------------------------------------------------------- */
 /* Products                                                                   */
 /* -------------------------------------------------------------------------- */
 
@@ -221,7 +167,6 @@ export const mockProducts: Product[] = [
         id: 1,
         uuid: 'prd-coke-can',
         category_id: 1,
-        vendor_id: 1,
         name: 'Coca-Cola Original 330ml Can',
         sku: 'BEV-COKE-330',
         barcode: '8851959132014',
@@ -243,7 +188,6 @@ export const mockProducts: Product[] = [
         id: 2,
         uuid: 'prd-coke-pack6',
         category_id: 1,
-        vendor_id: 1,
         parent_product_id: 1,
         units_per_pack: 6,
         name: 'Coca-Cola 330ml (6-Pack)',
@@ -263,7 +207,6 @@ export const mockProducts: Product[] = [
         id: 3,
         uuid: 'prd-angkor-can',
         category_id: 2,
-        vendor_id: 2,
         name: 'Angkor Beer 330ml Can',
         sku: 'ALC-ANGKOR-330',
         barcode: '884800010012',
@@ -285,7 +228,6 @@ export const mockProducts: Product[] = [
         id: 4,
         uuid: 'prd-hanuman-can',
         category_id: 2,
-        vendor_id: 2,
         name: 'Hanuman Premium Lager 330ml Can',
         sku: 'ALC-HANUMAN-330',
         barcode: '884800020034',
@@ -304,7 +246,6 @@ export const mockProducts: Product[] = [
         id: 5,
         uuid: 'prd-vital-500',
         category_id: 1,
-        vendor_id: 3,
         name: 'Vital Premium Water 500ml',
         sku: 'BEV-VITAL-500',
         barcode: '884100100019',
@@ -326,7 +267,6 @@ export const mockProducts: Product[] = [
         id: 6,
         uuid: 'prd-redbull-250',
         category_id: 1,
-        vendor_id: 1,
         name: 'Red Bull Energy Drink Gold 250ml',
         sku: 'BEV-REDBULL-250',
         barcode: '8850228000155',
@@ -345,7 +285,6 @@ export const mockProducts: Product[] = [
         id: 7,
         uuid: 'prd-sting-straw',
         category_id: 1,
-        vendor_id: 1,
         name: 'Sting Energy Strawberry 330ml',
         sku: 'BEV-STING-RED',
         barcode: '8934588012112',
