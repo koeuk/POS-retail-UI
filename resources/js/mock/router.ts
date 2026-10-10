@@ -143,7 +143,9 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
     const q = getQueryParams();
 
     switch (name) {
-        case 'Dashboard':
+        case 'Dashboard': {
+            const todayIso = new Date().toISOString().slice(0, 10);
+            const selectedDate = (q.date as string) || todayIso;
             return {
                 today: mockDashboardData.today,
                 yesterday: mockDashboardData.yesterday,
@@ -152,7 +154,17 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
                 oversold: mockDashboardData.oversold,
                 recentOrders: mockDashboardData.recentOrders,
                 stats: mockDashboardData.stats,
+                offlineToday: mockDashboardData.offlineToday,
+                debts: mockDashboardData.debts,
+                myself: mockDashboardData.myself,
+                catalogue: mockDashboardData.catalogue,
+                canSeeReports: mockDashboardData.canSeeReports,
+                filters: {
+                    date: selectedDate,
+                    isToday: selectedDate === todayIso,
+                },
             };
+        }
 
         case 'Pos/Index':
             return {
@@ -413,6 +425,8 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
             return {
                 status: q.status || null,
             };
+
+        case 'settings/Shop':
             return {
                 shop: {
                     name: 'Smile Mart Cambodia',
@@ -527,17 +541,25 @@ async function navigateTo(targetUrl: string, options: any = {}) {
 /* usePage Implementation                                                     */
 /* -------------------------------------------------------------------------- */
 
-const page = {
-    props: computed(() => {
-        return {
-            ...mockSharedData,
-            ...currentPageProps,
-        };
-    }) as any,
-    url: computed(() => currentPath.value + currentSearch.value) as any,
-    component: computed(() => currentComponentName.value) as any,
+const pageProps = computed(() => {
+    return {
+        ...mockSharedData,
+        ...currentPageProps,
+    };
+});
+
+const page = reactive({
+    get props() {
+        return pageProps.value;
+    },
+    get url() {
+        return currentPath.value + currentSearch.value;
+    },
+    get component() {
+        return currentComponentName.value;
+    },
     version: '1.0.0',
-};
+});
 
 export function usePage<T = any>(): T {
     return page as unknown as T;
@@ -870,7 +892,7 @@ export function createSpaApp(options: {
         setup() {
             return () => {
                 if (!currentComponent.value) return null;
-                return h(currentComponent.value, page.props.value);
+                return h(currentComponent.value, page.props);
             };
         },
     });

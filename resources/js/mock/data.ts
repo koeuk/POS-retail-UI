@@ -708,25 +708,25 @@ export const mockDebts: MockDebt[] = [
 
 export const mockDashboardData = {
     today: {
-        sales: '1,420.50',
+        sales: '1420.50',
         orders: 48,
         basket: '29.59',
         items: 134,
     },
     yesterday: {
-        sales: '1,280.00',
+        sales: '1280.00',
         orders: 42,
         basket: '30.47',
         items: 118,
     },
     trend: [
         { day: 'Oct 03', orders: 38, sales: '980.00' },
-        { day: 'Oct 04', orders: 44, sales: '1,150.00' },
-        { day: 'Oct 05', orders: 51, sales: '1,320.00' },
-        { day: 'Oct 06', orders: 40, sales: '1,050.00' },
-        { day: 'Oct 07', orders: 46, sales: '1,210.00' },
-        { day: 'Oct 08', orders: 42, sales: '1,280.00' },
-        { day: 'Oct 09', orders: 48, sales: '1,420.50' },
+        { day: 'Oct 04', orders: 44, sales: '1150.00' },
+        { day: 'Oct 05', orders: 51, sales: '1320.00' },
+        { day: 'Oct 06', orders: 40, sales: '1050.00' },
+        { day: 'Oct 07', orders: 46, sales: '1210.00' },
+        { day: 'Oct 08', orders: 42, sales: '1280.00' },
+        { day: 'Oct 09', orders: 48, sales: '1420.50' },
     ],
     lowStock: [
         {
@@ -780,6 +780,25 @@ export const mockDashboardData = {
         customers_count: 5,
         stores_count: 2,
         low_stock_count: 2,
+    },
+    offlineToday: 0,
+    debts: {
+        count: 2,
+        owed: '34.70',
+    },
+    myself: {
+        week: { count: 3, value: '18.50' },
+        month: { count: 12, value: '64.00' },
+        year: { count: 140, value: '720.00' },
+    },
+    catalogue: {
+        products: 12,
+        categories: 5,
+    },
+    canSeeReports: true,
+    filters: {
+        date: new Date().toISOString().slice(0, 10),
+        isToday: true,
     },
 };
 
