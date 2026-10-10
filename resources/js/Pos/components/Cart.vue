@@ -39,9 +39,9 @@ const cart = useCart();
             tag="ul"
             class="min-h-0 flex-1 divide-y divide-border overflow-y-auto"
             enter-from-class="opacity-0 -translate-y-1"
-            enter-active-class="transition duration-[120ms] ease-out-quint"
+            enter-active-class="transition duration-120 ease-out-quint"
             leave-to-class="opacity-0 translate-x-2"
-            leave-active-class="transition duration-[120ms] ease-out-quint absolute"
+            leave-active-class="transition duration-120 ease-out-quint absolute"
         >
             <li v-for="line in cart.lines" :key="line.productId" class="flex items-start gap-2 p-3">
                 <div class="min-w-0 flex-1">

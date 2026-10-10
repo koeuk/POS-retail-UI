@@ -27,6 +27,9 @@ export default {
                 'out-quint': 'cubic-bezier(0.22, 1, 0.36, 1)',
                 spring: 'cubic-bezier(0.34, 1.46, 0.64, 1)',
             },
+            transitionDuration: {
+                120: '120ms',
+            },
             colors: {
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',
