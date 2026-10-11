@@ -15,8 +15,14 @@ export function usePermissions() {
     const canAccess = (area: string) => !!page.props.auth.can[area];
 
     /** May they take this action inside it? */
-    const may = (area: string, action: 'view' | 'create' | 'update' | 'delete') =>
-        !!page.props.auth.actions?.[area]?.[action];
+    const may = (area: string, action: 'view' | 'create' | 'update' | 'delete') => {
+        const act = page.props.auth.actions?.[area] as Record<string, boolean> | undefined;
+        if (!act) return false;
+        if (action === 'update') {
+            return !!(act.update ?? act.edit);
+        }
+        return !!act[action];
+    };
 
     return { canAccess, may };
 }

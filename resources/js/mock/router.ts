@@ -61,6 +61,12 @@ const routeMap: Record<string, string> = {
     'categories.store': '/categories',
     'categories.update': '/categories/{category}',
     'categories.destroy': '/categories/{category}',
+    'categories.history': '/categories/{subjectId}/history',
+    'products.history': '/products/{subjectId}/history',
+    'customers.history': '/customers/{subjectId}/history',
+    'stores.history': '/stores/{subjectId}/history',
+    'inventory.history': '/inventory/{subjectId}/history',
+    'users.history': '/users/{subjectId}/history',
     'customers.index': '/customers',
     'customers.store': '/customers',
     'customers.update': '/customers/{customer}',
@@ -100,19 +106,35 @@ const routeMap: Record<string, string> = {
     'verification.notice': '/verify-email',
 };
 
-export function route(name: string, params?: Record<string, any>): string {
+export function route(name: string, params?: any): string {
     let path = routeMap[name];
     if (!path) {
         console.warn(`Route "${name}" not found, returning /dashboard`);
         return '/dashboard';
     }
-    
-    if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-            path = path.replace(`{${key}}`, String(value));
-        });
+
+    if (params !== undefined && params !== null) {
+        if (typeof params === 'object' && !Array.isArray(params)) {
+            Object.entries(params).forEach(([key, value]) => {
+                path = path.replace(`{${key}}`, String(value));
+            });
+            // If any placeholder remains and a single property or key was provided
+            const remaining = path.match(/\{([a-zA-Z0-9_]+)\}/);
+            if (remaining) {
+                const keys = Object.keys(params);
+                if (keys.length === 1) {
+                    path = path.replace(remaining[0], String(Object.values(params)[0]));
+                } else if (params.subjectId || params.uuid || params.id || params.category || params.product) {
+                    const fallbackVal =
+                        params.subjectId || params.uuid || params.id || params.category || params.product;
+                    path = path.replace(remaining[0], String(fallbackVal));
+                }
+            }
+        } else {
+            path = path.replace(/\{[a-zA-Z0-9_]+\}/, String(params));
+        }
     }
-    
+
     return path;
 }
 
@@ -403,15 +425,15 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
         }
 
         case 'Categories/Index': {
+            const searchVal = (q.search || q['filter[search]'] || '').toLowerCase();
             let filtered = [...mockCategories];
-            if (q.search) {
-                const s = q.search.toLowerCase();
-                filtered = filtered.filter((c) => c.name.toLowerCase().includes(s));
+            if (searchVal) {
+                filtered = filtered.filter((c) => c.name.toLowerCase().includes(searchVal));
             }
             return {
                 categories: filtered,
                 filters: {
-                    search: q.search || '',
+                    search: q.search || q['filter[search]'] || '',
                 },
             };
         }
@@ -723,27 +745,125 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
         }
 
         case 'Activity/Show': {
-            const match = path.match(/\/activity\/([^\/]+)/);
-            const activityId = match ? match[1] : '1';
+            const historyMatch = path.match(
+                /\/(categories|products|customers|stores|inventory|users)\/([^\/]+)\/history/,
+            );
+
+            let subjectType = 'Record';
+            let subjectIdNum = 1;
+            let subjectLabel = 'Item';
+            let parentInfo = { title: 'Activity', href: '/activity' };
+            let selfHref = path;
+
+            if (historyMatch) {
+                const section = historyMatch[1];
+                const idOrUuid = historyMatch[2];
+
+                if (section === 'categories') {
+                    const cat =
+                        mockCategories.find((c) => c.uuid === idOrUuid || String(c.id) === idOrUuid) ??
+                        mockCategories[0];
+                    subjectType = 'Category';
+                    subjectIdNum = cat?.id ?? 1;
+                    subjectLabel = cat?.name ?? `Category #${idOrUuid}`;
+                    parentInfo = { title: 'Categories', href: '/categories' };
+                    selfHref = `/categories/${idOrUuid}/history`;
+                } else if (section === 'products') {
+                    const prd =
+                        mockProducts.find((p) => p.uuid === idOrUuid || String(p.id) === idOrUuid) ??
+                        mockProducts[0];
+                    subjectType = 'Product';
+                    subjectIdNum = prd?.id ?? 1;
+                    subjectLabel = prd?.name ?? `Product #${idOrUuid}`;
+                    parentInfo = { title: 'Products', href: '/products' };
+                    selfHref = `/products/${idOrUuid}/history`;
+                } else if (section === 'customers') {
+                    const cst =
+                        mockCustomers.find((c) => c.uuid === idOrUuid || String(c.id) === idOrUuid) ??
+                        mockCustomers[0];
+                    subjectType = 'Customer';
+                    subjectIdNum = cst?.id ?? 1;
+                    subjectLabel = cst?.name ?? `Customer #${idOrUuid}`;
+                    parentInfo = { title: 'Customers', href: '/customers' };
+                    selfHref = `/customers/${idOrUuid}/history`;
+                } else if (section === 'stores') {
+                    const str =
+                        mockStores.find((s) => s.uuid === idOrUuid || String(s.id) === idOrUuid) ??
+                        mockStores[0];
+                    subjectType = 'Store';
+                    subjectIdNum = str?.id ?? 1;
+                    subjectLabel = str?.name ?? `Store #${idOrUuid}`;
+                    parentInfo = { title: 'Stores', href: '/stores' };
+                    selfHref = `/stores/${idOrUuid}/history`;
+                } else if (section === 'inventory') {
+                    const stock =
+                        mockStocks.find((s) => s.uuid === idOrUuid || String(s.id) === idOrUuid) ??
+                        mockStocks[0];
+                    const prd = mockProducts.find((p) => p.id === stock?.product_id);
+                    subjectType = 'Stock';
+                    subjectIdNum = stock?.id ?? 1;
+                    subjectLabel = prd ? `${prd.name} Stock` : `Stock #${idOrUuid}`;
+                    parentInfo = { title: 'Inventory', href: '/inventory' };
+                    selfHref = `/inventory/${idOrUuid}/history`;
+                } else if (section === 'users') {
+                    const usr =
+                        mockUsers.find((u) => u.uuid === idOrUuid || String(u.id) === idOrUuid) ??
+                        mockUsers[0];
+                    subjectType = 'User';
+                    subjectIdNum = usr?.id ?? 1;
+                    subjectLabel = usr?.name ?? `User #${idOrUuid}`;
+                    parentInfo = { title: 'Users', href: '/users' };
+                    selfHref = `/users/${idOrUuid}/history`;
+                }
+            } else {
+                const match = path.match(/\/activity\/([^\/]+)/);
+                const activityId = match ? match[1] : '1';
+                subjectType = 'Product';
+                subjectIdNum = Number(activityId) || 1;
+                subjectLabel = 'Coca-Cola Original 330ml Can';
+                parentInfo = { title: 'Activity', href: '/activity' };
+                selfHref = `/activity/${activityId}`;
+            }
+
+            const mockEntries = [
+                {
+                    id: 1,
+                    log_name: subjectType.toLowerCase(),
+                    description: `Updated ${subjectType.toLowerCase()} "${subjectLabel}"`,
+                    event: 'updated',
+                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.10',
+                    changes: [
+                        { field: 'name', from: 'Previous ' + subjectLabel, to: subjectLabel },
+                    ],
+                    properties: {},
+                    created_at: '2026-10-10T14:30:00Z',
+                },
+                {
+                    id: 2,
+                    log_name: subjectType.toLowerCase(),
+                    description: `Created ${subjectType.toLowerCase()} "${subjectLabel}"`,
+                    event: 'created',
+                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.10',
+                    changes: [],
+                    properties: {},
+                    created_at: '2026-10-08T09:00:00Z',
+                },
+            ];
+
             return {
-                entries: paginate([
-                    {
-                        id: Number(activityId) || 1,
-                        description: 'Created product "Coca-Cola Original 330ml Can"',
-                        causer: { id: 1, name: 'Sokha Rith (Admin)' },
-                        subject: { type: 'product', id: 1, label: 'Coca-Cola Original 330ml Can' },
-                        event: 'created',
-                        store: { id: 1, name: 'Main Store (BKK1)' },
-                        ip_address: '192.168.1.10',
-                        changes: [],
-                        properties: { sku: 'BEV-COKE-330' },
-                        created_at: '2026-10-09T18:00:00Z',
-                    },
-                ]),
-                subject: { type: 'product', id: 1, label: 'Coca-Cola Original 330ml Can', exists: true },
-                summary: { total: 1, first_at: '2026-10-09T18:00:00Z', last_at: '2026-10-09T18:00:00Z' },
-                parent: { title: 'Products', href: '/products' },
-                self_href: `/activity/${activityId}`,
+                entries: paginate(mockEntries, Number(q.page) || 1, 15),
+                subject: { type: subjectType, id: subjectIdNum, label: subjectLabel, exists: true },
+                summary: {
+                    total: mockEntries.length,
+                    first_at: mockEntries[1].created_at,
+                    last_at: mockEntries[0].created_at,
+                },
+                parent: parentInfo,
+                self_href: selfHref,
             };
         }
 
@@ -846,6 +966,7 @@ function matchPathToComponent(path: string): string {
 
     if (clean === '/' || clean === '/dashboard') return 'Dashboard';
     if (clean === '/pos') return 'Pos/Index';
+    if (clean.endsWith('/history')) return 'Activity/Show';
     if (clean === '/products') return 'Products/Index';
     if (clean === '/products/create') return 'Products/Create';
     if (clean.startsWith('/products/') && clean.endsWith('/edit')) return 'Products/Edit';
@@ -1046,6 +1167,46 @@ function handleMockMutation(method: string, url: string, data: any) {
         });
     }
 
+    // If updating category:
+    if (url.includes('categories') && (method === 'put' || method === 'patch') && data.name) {
+        const cat = mockCategories.find((c) => url.includes(c.uuid) || url.includes(String(c.id)));
+        if (cat) {
+            cat.name = data.name;
+        }
+    }
+
+    // If deleting category:
+    if (url.includes('categories') && method === 'delete') {
+        const idx = mockCategories.findIndex((c) => url.includes(c.uuid) || url.includes(String(c.id)));
+        if (idx !== -1) {
+            mockCategories.splice(idx, 1);
+        }
+    }
+
+    // If updating product:
+    if (url.includes('products') && (method === 'put' || method === 'patch')) {
+        const prd = mockProducts.find((p) => url.includes(p.uuid) || url.includes(String(p.id)));
+        if (prd) {
+            if (data.name) prd.name = data.name;
+            if (data.sku) prd.sku = data.sku;
+            if (data.barcode !== undefined) prd.barcode = data.barcode;
+            if (data.category_id) prd.category_id = Number(data.category_id);
+            if (data.cost_price !== undefined) prd.cost_price = String(data.cost_price);
+            if (data.sell_price !== undefined) prd.sell_price = String(data.sell_price);
+            if (data.description !== undefined) prd.description = data.description;
+            if (data.unit !== undefined) prd.unit = data.unit;
+            if (data.track_stock !== undefined) prd.track_stock = data.track_stock;
+        }
+    }
+
+    // If deleting product:
+    if (url.includes('products') && method === 'delete') {
+        const idx = mockProducts.findIndex((p) => url.includes(p.uuid) || url.includes(String(p.id)));
+        if (idx !== -1) {
+            mockProducts.splice(idx, 1);
+        }
+    }
+
     // If creating customer:
     if (url.includes('customers') && method === 'post' && data.name) {
         mockCustomers.push({
@@ -1058,6 +1219,60 @@ function handleMockMutation(method: string, url: string, data: any) {
             orders_count: 0,
             spent_total: '0.00',
         });
+    }
+
+    // If updating customer:
+    if (url.includes('customers') && (method === 'put' || method === 'patch')) {
+        const cst = mockCustomers.find((c) => url.includes(c.uuid) || url.includes(String(c.id)));
+        if (cst) {
+            if (data.name) cst.name = data.name;
+            if (data.phone !== undefined) cst.phone = data.phone;
+            if (data.email !== undefined) cst.email = data.email;
+        }
+    }
+
+    // If deleting customer:
+    if (url.includes('customers') && method === 'delete') {
+        const idx = mockCustomers.findIndex((c) => url.includes(c.uuid) || url.includes(String(c.id)));
+        if (idx !== -1) {
+            mockCustomers.splice(idx, 1);
+        }
+    }
+
+    // If updating store:
+    if (url.includes('stores') && (method === 'put' || method === 'patch')) {
+        const str = mockStores.find((s) => url.includes(s.uuid) || url.includes(String(s.id)));
+        if (str) {
+            if (data.name) str.name = data.name;
+            if (data.address !== undefined) str.address = data.address;
+            if (data.phone !== undefined) str.phone = data.phone;
+        }
+    }
+
+    // If deleting store:
+    if (url.includes('stores') && method === 'delete') {
+        const idx = mockStores.findIndex((s) => url.includes(s.uuid) || url.includes(String(s.id)));
+        if (idx !== -1) {
+            mockStores.splice(idx, 1);
+        }
+    }
+
+    // If updating user:
+    if (url.includes('users') && (method === 'put' || method === 'patch')) {
+        const usr = mockUsers.find((u) => url.includes(u.uuid) || url.includes(String(u.id)));
+        if (usr) {
+            if (data.name) usr.name = data.name;
+            if (data.email !== undefined) usr.email = data.email;
+            if (data.role !== undefined) usr.role = data.role;
+        }
+    }
+
+    // If deleting user:
+    if (url.includes('users') && method === 'delete') {
+        const idx = mockUsers.findIndex((u) => url.includes(u.uuid) || url.includes(String(u.id)));
+        if (idx !== -1) {
+            mockUsers.splice(idx, 1);
+        }
     }
 }
 
