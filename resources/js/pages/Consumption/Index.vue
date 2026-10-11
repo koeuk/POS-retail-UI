@@ -49,7 +49,7 @@ let debounce: ReturnType<typeof setTimeout>;
 
 function reload() {
     router.get(
-        route('consumption.index'),
+        route('myself.index'),
         { filter: { search: search.value || undefined, from: from.value || undefined, to: to.value || undefined }, per_page: currentPerPage() },
         { preserveState: true, preserveScroll: true, replace: true },
     );
@@ -69,7 +69,7 @@ const summarise = (r: Row) => r.items.map((i) => (i.qty > 1 ? `${i.product_name}
 <template>
     <Head title="Myself" />
 
-    <AppLayout :breadcrumbs="[{ title: 'Myself', href: '/consumption' }]">
+    <AppLayout :breadcrumbs="[{ title: 'Myself', href: '/myself' }]">
         <div class="px-2.5 py-6 md:px-8">
             <PageHeader
                 title="Myself"

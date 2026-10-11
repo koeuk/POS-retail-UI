@@ -74,7 +74,8 @@ const routeMap: Record<string, string> = {
     'users.update': '/users/{user}',
     'users.destroy': '/users/{user}',
     'reports.index': '/reports',
-    'consumption.index': '/consumption',
+    'myself.index': '/myself',
+    'consumption.index': '/myself',
     'menu.index': '/menu',
     'menu.show': '/menu/{product}',
     'activity.index': '/activity',
@@ -600,6 +601,7 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
                 ],
             };
 
+        case 'Myself/Index':
         case 'Consumption/Index': {
             const myselfOrders = mockOrders.filter((o) => o.sale_type === 'myself');
             let rows = myselfOrders.map((o) => ({
@@ -857,7 +859,7 @@ function matchPathToComponent(path: string): string {
     if (clean === '/stores') return 'Stores/Index';
     if (clean === '/users') return 'Users/Index';
     if (clean === '/reports') return 'Reports/Index';
-    if (clean === '/consumption') return 'Consumption/Index';
+    if (clean === '/myself' || clean === '/consumption') return 'Myself/Index';
     if (clean === '/menu') return 'Menu/Index';
     if (clean.startsWith('/menu/')) return 'Menu/Show';
     if (clean === '/activity') return 'Activity/Index';

@@ -29,7 +29,7 @@ export const navGroups: NavGroup[] = [
             { title: 'Point of Sale', href: '/pos', icon: ScanBarcode, requires: 'pos' },
             { title: 'Order History', href: '/orders', icon: ReceiptText, requires: 'orders' },
             { title: 'In Debt', href: '/debts', icon: HandCoins, requires: 'debts' },
-            { title: 'Myself', href: '/consumption', icon: Utensils, requires: 'consumption' },
+            { title: 'Myself', href: '/myself', icon: Utensils, requires: 'myself' },
             { title: 'Reports', href: '/reports', icon: ChartNoAxesColumn, requires: 'reports' },
             // The public customer catalogue. No `requires`: a cashier may well
             // want to show someone the menu across the counter.

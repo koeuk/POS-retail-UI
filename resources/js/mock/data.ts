@@ -85,6 +85,7 @@ export const mockSharedData: SharedData = {
             reports: true,
             activity: true,
             consumption: true,
+            myself: true,
             menu: true,
             settings: true,
         },
