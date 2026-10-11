@@ -445,9 +445,12 @@ const typeTone = (type: string) => (type === 'sale' ? 'outline' : type === 'rest
                                 >
                                     Alert at {{ stock.low_stock_threshold ?? '—' }}
                                 </button>
-                                <Button v-if="may('inventory', 'update')" size="sm" variant="outline" class="press" @click="openAdjust(stock)">
-                                    Adjust
-                                </Button>
+                                <div class="flex items-center gap-1">
+                                    <HistoryButton subject-type="Stock" :subject-id="stock.uuid" :label="stock.product?.name ?? 'stock'" />
+                                    <Button v-if="may('inventory', 'update')" size="sm" variant="outline" class="press" @click="openAdjust(stock)">
+                                        Adjust
+                                    </Button>
+                                </div>
                             </div>
                         </li>
                     </ul>

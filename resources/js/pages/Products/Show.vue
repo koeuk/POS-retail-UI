@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HistoryButton from '@/components/HistoryButton.vue';
 import Money from '@/components/Money.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import { Badge } from '@/components/ui/badge';
@@ -95,6 +96,7 @@ function nextSlide() {
                             Back
                         </Link>
                     </Button>
+                    <HistoryButton subject-type="Product" :subject-id="product.uuid" :label="product.name" with-label />
                     <Button as-child class="press">
                         <Link :href="route('products.edit', { product: product.uuid })">
                             <Pencil class="size-4" />

@@ -825,41 +825,137 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
                 selfHref = `/activity/${activityId}`;
             }
 
-            const mockEntries = [
-                {
-                    id: 1,
-                    log_name: subjectType.toLowerCase(),
-                    description: `Updated ${subjectType.toLowerCase()} "${subjectLabel}"`,
-                    event: 'updated',
-                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
-                    store: { id: 1, name: 'Main Store (BKK1)' },
-                    ip_address: '192.168.1.10',
-                    changes: [
-                        { field: 'name', from: 'Previous ' + subjectLabel, to: subjectLabel },
-                    ],
-                    properties: {},
-                    created_at: '2026-10-10T14:30:00Z',
-                },
-                {
-                    id: 2,
-                    log_name: subjectType.toLowerCase(),
-                    description: `Created ${subjectType.toLowerCase()} "${subjectLabel}"`,
-                    event: 'created',
-                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
-                    store: { id: 1, name: 'Main Store (BKK1)' },
-                    ip_address: '192.168.1.10',
-                    changes: [],
-                    properties: {},
-                    created_at: '2026-10-08T09:00:00Z',
-                },
-            ];
+            let mockEntries: any[] = [];
+
+            if (historyMatch && historyMatch[1] === 'products') {
+                const prd = mockProducts.find((p) => p.uuid === historyMatch[2] || String(p.id) === historyMatch[2]);
+                const oldPrice = prd ? (parseFloat(prd.sell_price) * 0.9).toFixed(2) : '0.45';
+                const currentPrice = prd?.sell_price || '0.50';
+                mockEntries = [
+                    {
+                        id: 1,
+                        log_name: 'product',
+                        description: `Updated price and inventory for "${subjectLabel}"`,
+                        event: 'updated',
+                        causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                        store: { id: 1, name: 'Main Store (BKK1)' },
+                        ip_address: '192.168.1.10',
+                        changes: [
+                            { field: 'sell_price', from: oldPrice, to: currentPrice },
+                        ],
+                        properties: { sku: prd?.sku || '', barcode: prd?.barcode || '—' },
+                        created_at: '2026-10-10T14:30:00Z',
+                    },
+                    {
+                        id: 2,
+                        log_name: 'product',
+                        description: `Restocked "${subjectLabel}" (+48 ${prd?.unit || 'unit'})`,
+                        event: 'updated',
+                        causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                        store: { id: 1, name: 'Main Store (BKK1)' },
+                        ip_address: '192.168.1.10',
+                        changes: [
+                            { field: 'stock_qty', from: String((prd?.stock_qty || 100) - 48), to: String(prd?.stock_qty || 100) },
+                        ],
+                        properties: { store: 'Main Store (BKK1)' },
+                        created_at: '2026-10-09T10:15:00Z',
+                    },
+                    {
+                        id: 3,
+                        log_name: 'product',
+                        description: `Created product "${subjectLabel}"`,
+                        event: 'created',
+                        causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                        store: { id: 1, name: 'Main Store (BKK1)' },
+                        ip_address: '192.168.1.10',
+                        changes: [],
+                        properties: { sku: prd?.sku || '', unit: prd?.unit || 'unit' },
+                        created_at: '2026-10-08T09:00:00Z',
+                    },
+                ];
+            } else if (historyMatch && historyMatch[1] === 'inventory') {
+                const stock = mockStocks.find((s) => s.uuid === historyMatch[2] || String(s.id) === historyMatch[2]);
+                const currentThresh = String(stock?.low_stock_threshold ?? 20);
+                const currentQty = String(stock?.qty ?? 50);
+                mockEntries = [
+                    {
+                        id: 1,
+                        log_name: 'inventory',
+                        description: `Updated low stock threshold for "${subjectLabel}"`,
+                        event: 'updated',
+                        causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                        store: stock?.store ?? { id: 1, name: 'Main Store (BKK1)' },
+                        ip_address: '192.168.1.10',
+                        changes: [
+                            { field: 'low_stock_threshold', from: '10', to: currentThresh },
+                        ],
+                        properties: { on_hand: currentQty },
+                        created_at: '2026-10-10T15:00:00Z',
+                    },
+                    {
+                        id: 2,
+                        log_name: 'inventory',
+                        description: `Adjusted stock balance for "${subjectLabel}"`,
+                        event: 'updated',
+                        causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                        store: stock?.store ?? { id: 1, name: 'Main Store (BKK1)' },
+                        ip_address: '192.168.1.10',
+                        changes: [
+                            { field: 'qty', from: String((stock?.qty ?? 50) - 24), to: currentQty },
+                        ],
+                        properties: { reason: 'Delivery stock in' },
+                        created_at: '2026-10-09T11:20:00Z',
+                    },
+                    {
+                        id: 3,
+                        log_name: 'inventory',
+                        description: `Initialized stock tracking for "${subjectLabel}"`,
+                        event: 'created',
+                        causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                        store: stock?.store ?? { id: 1, name: 'Main Store (BKK1)' },
+                        ip_address: '192.168.1.10',
+                        changes: [],
+                        properties: { initial_qty: '24' },
+                        created_at: '2026-10-08T09:00:00Z',
+                    },
+                ];
+            } else {
+                mockEntries = [
+                    {
+                        id: 1,
+                        log_name: subjectType.toLowerCase(),
+                        description: `Updated ${subjectType.toLowerCase()} "${subjectLabel}"`,
+                        event: 'updated',
+                        causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                        store: { id: 1, name: 'Main Store (BKK1)' },
+                        ip_address: '192.168.1.10',
+                        changes: [
+                            { field: 'name', from: 'Previous ' + subjectLabel, to: subjectLabel },
+                        ],
+                        properties: {},
+                        created_at: '2026-10-10T14:30:00Z',
+                    },
+                    {
+                        id: 2,
+                        log_name: subjectType.toLowerCase(),
+                        description: `Created ${subjectType.toLowerCase()} "${subjectLabel}"`,
+                        event: 'created',
+                        causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@smilemart.kh' },
+                        store: { id: 1, name: 'Main Store (BKK1)' },
+                        ip_address: '192.168.1.10',
+                        changes: [],
+                        properties: {},
+                        created_at: '2026-10-08T09:00:00Z',
+                    },
+                ];
+            }
 
             return {
                 entries: paginate(mockEntries, Number(q.page) || 1, 15),
                 subject: { type: subjectType, id: subjectIdNum, label: subjectLabel, exists: true },
                 summary: {
                     total: mockEntries.length,
-                    first_at: mockEntries[1].created_at,
+                    first_at: mockEntries[mockEntries.length - 1].created_at,
                     last_at: mockEntries[0].created_at,
                 },
                 parent: parentInfo,

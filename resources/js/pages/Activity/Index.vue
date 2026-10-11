@@ -278,7 +278,7 @@ const subjectLabel = (row: ActivityRow) => (row.subject_type ? `${row.subject_ty
                                     </p>
 
                                     <!-- The diff. Only fields that actually changed reach here. -->
-                                    <ul v-if="a.changes.length" class="mt-1.5 space-y-0.5">
+                                    <ul v-if="a.changes && a.changes.length" class="mt-1.5 space-y-0.5">
                                         <li v-for="c in a.changes" :key="c.field" class="text-xs leading-snug">
                                             <span class="text-muted-foreground">{{ fieldLabel(c.field) }}:</span>
                                             <span v-if="c.from" class="tabular font-mono text-muted-foreground line-through">{{ c.from }}</span>
@@ -290,7 +290,7 @@ const subjectLabel = (row: ActivityRow) => (row.subject_type ? `${row.subject_ty
                                     </ul>
 
                                     <!-- Money and auth entries carry a payload instead of a diff. -->
-                                    <p v-if="Object.keys(a.properties).length" class="mt-1.5 text-xs text-muted-foreground">
+                                    <p v-if="a.properties && Object.keys(a.properties).length" class="mt-1.5 text-xs text-muted-foreground">
                                         <span v-for="(value, key) in a.properties" :key="key" class="mr-2 inline-block">
                                             {{ fieldLabel(String(key)) }}: <span class="tabular font-mono">{{ value }}</span>
                                         </span>
@@ -333,7 +333,7 @@ const subjectLabel = (row: ActivityRow) => (row.subject_type ? `${row.subject_ty
                             <template v-if="a.store"> · {{ a.store.name }}</template>
                         </p>
 
-                        <ul v-if="a.changes.length" class="mt-2 space-y-0.5">
+                        <ul v-if="a.changes && a.changes.length" class="mt-2 space-y-0.5">
                             <li v-for="c in a.changes" :key="c.field" class="text-xs leading-snug">
                                 <span class="text-muted-foreground">{{ fieldLabel(c.field) }}:</span>
                                 <span v-if="c.from" class="tabular font-mono text-muted-foreground line-through">{{ c.from }}</span>
@@ -344,7 +344,7 @@ const subjectLabel = (row: ActivityRow) => (row.subject_type ? `${row.subject_ty
                             </li>
                         </ul>
 
-                        <p v-if="Object.keys(a.properties).length" class="mt-2 text-xs text-muted-foreground">
+                        <p v-if="a.properties && Object.keys(a.properties).length" class="mt-2 text-xs text-muted-foreground">
                             <span v-for="(value, key) in a.properties" :key="key" class="mr-2 inline-block">
                                 {{ fieldLabel(String(key)) }}: <span class="tabular font-mono">{{ value }}</span>
                             </span>

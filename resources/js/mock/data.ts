@@ -105,7 +105,7 @@ export const mockSharedData: SharedData = {
         code: 'USD',
         symbol: '$',
         decimals: 2,
-        riel_per_usd: 4100,
+        riel_per_usd: 4000,
     },
     branding: {
         logo: null,
