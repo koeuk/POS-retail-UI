@@ -200,17 +200,53 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
                 categories: mockCategories,
             };
 
-        case 'Products/Edit':
         case 'Products/Show': {
             const match = path.match(/\/products\/([^\/]+)/);
             const idOrUuid = match ? match[1] : '';
             const product =
                 mockProducts.find((p) => p.uuid === idOrUuid || String(p.id) === idOrUuid) ??
                 mockProducts[0];
+            const pStocks = mockStocks.filter((s) => s.product_id === product.id);
+            const stocks = pStocks.length ? pStocks : [
+                { id: 99, uuid: 'stk-99', product_id: product.id, store_id: 1, qty: 50, low_stock_threshold: 10, store: { id: 1, name: 'Main Store (BKK1)' } },
+            ];
+            const movements = [
+                {
+                    id: 1,
+                    type: 'restock',
+                    qty_change: 48,
+                    note: 'Initial branch opening stock',
+                    created_at: '2026-10-01T08:00:00Z',
+                    product: { id: product.id, name: product.name, unit: product.unit },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    creator: { id: 1, name: 'Sokha Rith (Admin)' },
+                },
+            ];
+            return {
+                product,
+                packs: [],
+                stocks,
+                movements,
+                sales: { qty: 24, revenue: '30.00' },
+            };
+        }
+
+        case 'Products/Edit': {
+            const match = path.match(/\/products\/([^\/]+)/);
+            const idOrUuid = match ? match[1] : '';
+            const product =
+                mockProducts.find((p) => p.uuid === idOrUuid || String(p.id) === idOrUuid) ??
+                mockProducts[0];
+            const pStocks = mockStocks.filter((s) => s.product_id === product.id);
+            const stocks = pStocks.length ? pStocks : [
+                { id: 99, uuid: 'stk-99', product_id: product.id, store_id: 1, qty: 50, low_stock_threshold: 10, store: { id: 1, name: 'Main Store (BKK1)' } },
+            ];
             return {
                 product,
                 categories: mockCategories,
-                stockHistory: [],
+                packs: [],
+                stores: mockStores.map((s) => ({ id: s.id, name: s.name })),
+                stocks,
             };
         }
 
@@ -282,49 +318,280 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
             };
         }
 
-        case 'Inventory/Index':
-            return {
-                inventory: paginate(mockStocks, 1, 15),
-                stores: mockStores,
-                filters: {},
-            };
+        case 'Inventory/Index': {
+            const stockRows = mockStocks.map((s) => {
+                const prod = mockProducts.find((p) => p.id === s.product_id) ?? null;
+                const store = mockStores.find((st) => st.id === s.store_id) ?? null;
+                return {
+                    id: s.id,
+                    uuid: s.uuid,
+                    qty: s.qty,
+                    low_stock_threshold: s.low_stock_threshold,
+                    product: prod
+                        ? {
+                              id: prod.id,
+                              name: prod.name,
+                              sku: prod.sku,
+                              barcode: prod.barcode,
+                              unit: prod.unit,
+                              case_size: prod.case_size ?? null,
+                              packs: [],
+                          }
+                        : null,
+                    store: store ? { id: store.id, name: store.name } : null,
+                };
+            });
 
-        case 'Categories/Index':
-            return {
-                categories: mockCategories,
-            };
+            let filteredStocks = stockRows;
+            if (q.search) {
+                const s = q.search.toLowerCase();
+                filteredStocks = filteredStocks.filter(
+                    (st) =>
+                        st.product?.name.toLowerCase().includes(s) ||
+                        st.product?.sku.toLowerCase().includes(s) ||
+                        st.product?.barcode?.includes(s),
+                );
+            }
+            if (q.store_id && q.store_id !== 'all') {
+                filteredStocks = filteredStocks.filter((st) => String(st.store?.id) === q.store_id);
+            }
 
-        case 'Customers/Index':
+            const mockMovements = [
+                {
+                    id: 1,
+                    type: 'restock',
+                    qty_change: 48,
+                    note: 'Supplier restock invoice #INV-8821',
+                    created_at: '2026-10-08T09:30:00Z',
+                    product: { id: 1, name: 'Coca-Cola Original 330ml Can', unit: 'can' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    creator: { id: 1, name: 'Sokha Rith (Admin)' },
+                },
+                {
+                    id: 2,
+                    type: 'sale',
+                    qty_change: -4,
+                    note: 'Sale ORD-2026-0045',
+                    created_at: '2026-10-09T18:45:00Z',
+                    product: { id: 5, name: 'Vital Premium Water 500ml', unit: 'bottle' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    creator: { id: 3, name: 'Bopha Chen' },
+                },
+            ];
+
             return {
-                customers: paginate(mockCustomers, Number(q.page) || 1, 15),
-                filters: {},
+                stocks: paginate(filteredStocks, Number(q.page) || 1, 15),
+                stores: mockStores.map((s) => ({ id: s.id, name: s.name })),
+                movements: mockMovements,
+                summary: {
+                    tracked: mockProducts.filter((p) => p.track_stock).length,
+                    units: mockStocks.reduce((sum, s) => sum + s.qty, 0),
+                    low: mockStocks.filter(
+                        (s) => s.low_stock_threshold !== null && s.qty <= s.low_stock_threshold && s.qty > 0,
+                    ).length,
+                    out: mockStocks.filter((s) => s.qty === 0).length,
+                    oversold: mockStocks.filter((s) => s.qty < 0).length,
+                },
+                filters: {
+                    search: q.search || '',
+                    store_id: q.store_id || 'all',
+                    state: q.state || 'all',
+                    sort: q.sort || 'qty',
+                },
             };
+        }
+
+        case 'Categories/Index': {
+            let filtered = [...mockCategories];
+            if (q.search) {
+                const s = q.search.toLowerCase();
+                filtered = filtered.filter((c) => c.name.toLowerCase().includes(s));
+            }
+            return {
+                categories: filtered,
+                filters: {
+                    search: q.search || '',
+                },
+            };
+        }
+
+        case 'Customers/Index': {
+            let filtered = [...mockCustomers];
+            if (q.search) {
+                const s = q.search.toLowerCase();
+                filtered = filtered.filter(
+                    (c) =>
+                        c.name.toLowerCase().includes(s) ||
+                        (c.phone && c.phone.includes(s)) ||
+                        (c.email && c.email.toLowerCase().includes(s)),
+                );
+            }
+            return {
+                customers: paginate(filtered, Number(q.page) || 1, 15),
+                filters: {
+                    search: q.search || '',
+                },
+            };
+        }
 
         case 'Stores/Index':
             return {
                 stores: mockStores,
+                canManage: true,
             };
 
-        case 'Users/Index':
+        case 'Users/Index': {
+            const permissionOptions = [
+                {
+                    value: 'pos',
+                    label: 'Point of Sale (Till)',
+                    group: 'Operations',
+                    defaults: { admin: true, manager: true, cashier: true },
+                    actionDefaults: {},
+                },
+                {
+                    value: 'orders',
+                    label: 'Orders & Receipts',
+                    group: 'Operations',
+                    defaults: { admin: true, manager: true, cashier: true },
+                    actionDefaults: {},
+                },
+                {
+                    value: 'products',
+                    label: 'Products & Catalogue',
+                    group: 'Inventory',
+                    defaults: { admin: true, manager: true, cashier: false },
+                    actionDefaults: {},
+                },
+                {
+                    value: 'categories',
+                    label: 'Categories',
+                    group: 'Inventory',
+                    defaults: { admin: true, manager: true, cashier: false },
+                    actionDefaults: {},
+                },
+                {
+                    value: 'inventory',
+                    label: 'Stock Levels & Movements',
+                    group: 'Inventory',
+                    defaults: { admin: true, manager: true, cashier: false },
+                    actionDefaults: {},
+                },
+                {
+                    value: 'customers',
+                    label: 'Customers & Loyalty',
+                    group: 'Relationships',
+                    defaults: { admin: true, manager: true, cashier: true },
+                    actionDefaults: {},
+                },
+                {
+                    value: 'debts',
+                    label: 'Customer Debts (Credit)',
+                    group: 'Relationships',
+                    defaults: { admin: true, manager: true, cashier: false },
+                    actionDefaults: {},
+                },
+                {
+                    value: 'reports',
+                    label: 'Sales Reports & Analytics',
+                    group: 'Management',
+                    defaults: { admin: true, manager: true, cashier: false },
+                    actionDefaults: {},
+                },
+                {
+                    value: 'stores',
+                    label: 'Store Branches',
+                    group: 'Management',
+                    defaults: { admin: true, manager: false, cashier: false },
+                    actionDefaults: {},
+                },
+                {
+                    value: 'users',
+                    label: 'Staff & Permissions',
+                    group: 'Management',
+                    defaults: { admin: true, manager: false, cashier: false },
+                    actionDefaults: {},
+                },
+            ];
+
+            const actionOptions = [
+                { value: 'view', label: 'View' },
+                { value: 'create', label: 'Create' },
+                { value: 'edit', label: 'Edit' },
+                { value: 'delete', label: 'Delete' },
+            ];
+
+            const roles = [
+                { value: 'admin', label: 'Admin (Full Access)' },
+                { value: 'manager', label: 'Store Manager' },
+                { value: 'cashier', label: 'Cashier' },
+            ];
+
+            const defaultActions = { view: true, create: true, edit: true, delete: true };
+            const cashierActions = { view: true, create: true, edit: false, delete: false };
+
+            const enrichedUsers = mockUsers.map((u) => ({
+                ...u,
+                store: mockStores.find((st) => st.id === u.store_id) || null,
+                effective_permissions: Object.fromEntries(
+                    permissionOptions.map((opt) => [
+                        opt.value,
+                        {
+                            allowed: u.role === 'admin' ? true : u.role === 'manager' ? opt.defaults.manager : opt.defaults.cashier,
+                            actions: u.role === 'admin' ? defaultActions : u.role === 'manager' ? defaultActions : cashierActions,
+                        },
+                    ]),
+                ),
+            }));
+
+            let filteredUsers = enrichedUsers;
+            if (q.search) {
+                const s = q.search.toLowerCase();
+                filteredUsers = filteredUsers.filter(
+                    (u) => u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s),
+                );
+            }
+            if (q.role && q.role !== 'all') {
+                filteredUsers = filteredUsers.filter((u) => u.role === q.role);
+            }
+
             return {
-                users: mockUsers,
+                users: paginate(filteredUsers, Number(q.page) || 1, 15),
                 stores: mockStores,
+                roles,
+                permissionOptions,
+                actionOptions,
+                filters: {
+                    search: q.search || '',
+                    role: q.role || 'all',
+                },
             };
+        }
 
         case 'Reports/Index':
             return {
-                summary: {
-                    total_sales: '8,420.50',
-                    total_orders: 284,
-                    avg_basket: '29.65',
-                    total_cost: '5,180.00',
-                    gross_profit: '3,240.50',
+                filters: {
+                    from: q.from || new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
+                    to: q.to || new Date().toISOString().slice(0, 10),
                 },
-                byCategory: mockCategories.map((c, i) => ({
-                    id: c.id,
-                    name: c.name,
-                    sales: (1200 - i * 150).toFixed(2),
-                    percentage: Math.round((28 - i * 4)),
+                totals: {
+                    orders: 284,
+                    sales: '8,420.50',
+                    items: 642,
+                    basket: '29.65',
+                },
+                byDay: [
+                    { day: '2026-10-05', orders: 36, sales: '1,045.20' },
+                    { day: '2026-10-06', orders: 42, sales: '1,280.00' },
+                    { day: '2026-10-07', orders: 39, sales: '1,120.50' },
+                    { day: '2026-10-08', orders: 48, sales: '1,450.00' },
+                    { day: '2026-10-09', orders: 55, sales: '1,890.80' },
+                    { day: '2026-10-10', orders: 64, sales: '2,150.00' },
+                ],
+                byProduct: mockProducts.slice(0, 6).map((p, idx) => ({
+                    product_name: p.name,
+                    qty: 40 - idx * 5,
+                    revenue: ((40 - idx * 5) * parseFloat(p.sell_price)).toFixed(2),
                 })),
                 byPayment: [
                     { method: 'Cash', count: 180, amount: '4,890.00' },
@@ -333,59 +600,175 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
                 ],
             };
 
-        case 'Consumption/Index':
-            return { items: [] };
+        case 'Consumption/Index': {
+            const myselfOrders = mockOrders.filter((o) => o.sale_type === 'myself');
+            let rows = myselfOrders.map((o) => ({
+                id: o.id,
+                uuid: o.uuid,
+                order_no: o.order_no,
+                total: o.total,
+                created_at: o.created_at,
+                created_offline_at: o.created_offline_at,
+                cashier: o.cashier,
+                items: o.items.map((i) => ({
+                    id: i.id,
+                    product_name: i.product_name,
+                    qty: i.qty,
+                })),
+            }));
 
-        case 'Menu/Index':
-            return {
-                categories: mockCategories,
-                products: mockProducts,
-            };
+            if (q.search) {
+                const s = q.search.toLowerCase();
+                rows = rows.filter(
+                    (r) =>
+                        r.order_no.toLowerCase().includes(s) ||
+                        r.items.some((item) => item.product_name.toLowerCase().includes(s)),
+                );
+            }
 
-        case 'Activity/Index':
             return {
-                activities: paginate([
-                    {
-                        id: 1,
-                        description: 'Created product "Coca-Cola Original 330ml Can"',
-                        causer: { name: 'Sokha Rith (Admin)' },
-                        created_at: '2026-10-09T18:00:00Z',
-                    },
-                    {
-                        id: 2,
-                        description: 'Recorded sale ORD-2026-0046 (18.90 USD)',
-                        causer: { name: 'Bopha Chen (Cashier)' },
-                        created_at: '2026-10-09T19:12:00Z',
-                    },
-                ]),
+                rows: paginate(rows, Number(q.page) || 1, 15),
+                filters: {
+                    search: q.search || '',
+                    from: q.from || '',
+                    to: q.to || '',
+                },
+                summary: mockDashboardData.myself,
             };
+        }
+
+        case 'Menu/Index': {
+            const menuProducts = mockProducts.map((p) => ({
+                id: p.id,
+                name: p.name,
+                packs: [],
+                description: p.description,
+                image: p.image,
+                unit: p.unit,
+                category_id: p.category_id,
+                category_name: mockCategories.find((c) => c.id === p.category_id)?.name ?? null,
+                price: parseFloat(p.sell_price),
+                sold_out: !p.is_active || (p.track_stock && (p.stock_qty ?? 0) <= 0),
+            }));
+
+            return {
+                products: menuProducts,
+                categories: mockCategories.map((c) => ({ id: c.id, name: c.name })),
+                filters: {
+                    search: q.search || '',
+                    category: q.category ? Number(q.category) : null,
+                },
+                shop: {
+                    name: 'Smile Mart Cambodia',
+                    footer: 'Thank you for your visit! Powered by Smile Mart.',
+                    currency: mockSharedData.currency,
+                },
+            };
+        }
+
+        case 'Activity/Index': {
+            const mockActivities = [
+                {
+                    id: 1,
+                    description: 'Created product "Coca-Cola Original 330ml Can"',
+                    causer: { id: 1, name: 'Sokha Rith (Admin)' },
+                    subject: { type: 'product', id: 1, label: 'Coca-Cola Original 330ml Can' },
+                    event: 'created',
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.10',
+                    properties: { sku: 'BEV-COKE-330' },
+                    created_at: '2026-10-09T18:00:00Z',
+                },
+                {
+                    id: 2,
+                    description: 'Recorded sale ORD-2026-0046 (18.90 USD)',
+                    causer: { id: 3, name: 'Bopha Chen (Cashier)' },
+                    subject: { type: 'order', id: 102, label: 'ORD-2026-0046' },
+                    event: 'sale',
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.12',
+                    properties: { amount: '18.90' },
+                    created_at: '2026-10-09T19:12:00Z',
+                },
+                {
+                    id: 3,
+                    description: 'Adjusted stock +48 for Malinda Jasmine Rice 5kg',
+                    causer: { id: 1, name: 'Sokha Rith (Admin)' },
+                    subject: { type: 'stock', id: 1, label: 'Malinda Jasmine Rice 5kg' },
+                    event: 'updated',
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.10',
+                    properties: { adjustment: '+48' },
+                    created_at: '2026-10-10T09:15:00Z',
+                },
+            ];
+
+            return {
+                activities: paginate(mockActivities, Number(q.page) || 1, 15),
+                filters: {
+                    search: q.search || '',
+                    event: q.event || 'all',
+                    causer_id: q.causer_id || 'all',
+                    store_id: q.store_id || 'all',
+                },
+                options: {
+                    logNames: { default: 'General Activity', sales: 'Till Sales', stock: 'Inventory' },
+                    events: ['created', 'updated', 'deleted', 'sale', 'refund', 'login'],
+                    staff: mockUsers.map((u) => ({ id: u.id, name: u.name })),
+                    stores: mockStores.map((s) => ({ id: s.id, name: s.name })),
+                },
+            };
+        }
 
         case 'Activity/Show': {
             const match = path.match(/\/activity\/([^\/]+)/);
             const activityId = match ? match[1] : '1';
             return {
-                activity: {
-                    id: activityId,
-                    description: 'Created product "Coca-Cola Original 330ml Can"',
-                    causer: { name: 'Sokha Rith (Admin)' },
-                    created_at: '2026-10-09T18:00:00Z',
-                    properties: {
-                        old: {},
-                        attributes: { name: 'Coca-Cola Original 330ml Can', sku: 'COKE-330', sell_price: '1.25' },
+                entries: paginate([
+                    {
+                        id: Number(activityId) || 1,
+                        description: 'Created product "Coca-Cola Original 330ml Can"',
+                        causer: { id: 1, name: 'Sokha Rith (Admin)' },
+                        subject: { type: 'product', id: 1, label: 'Coca-Cola Original 330ml Can' },
+                        event: 'created',
+                        store: { id: 1, name: 'Main Store (BKK1)' },
+                        ip_address: '192.168.1.10',
+                        changes: [],
+                        properties: { sku: 'BEV-COKE-330' },
+                        created_at: '2026-10-09T18:00:00Z',
                     },
-                },
+                ]),
+                subject: { type: 'product', id: 1, label: 'Coca-Cola Original 330ml Can', exists: true },
+                summary: { total: 1, first_at: '2026-10-09T18:00:00Z', last_at: '2026-10-09T18:00:00Z' },
+                parent: { title: 'Products', href: '/products' },
+                self_href: `/activity/${activityId}`,
             };
         }
 
         case 'Menu/Show': {
             const match = path.match(/\/menu\/([^\/]+)/);
             const idOrUuid = match ? match[1] : '';
-            const product =
+            const p =
                 mockProducts.find((p) => p.uuid === idOrUuid || String(p.id) === idOrUuid) ??
                 mockProducts[0];
             return {
-                product,
-                category: mockCategories.find((c) => c.id === product.category_id),
+                product: {
+                    id: p.id,
+                    name: p.name,
+                    description: p.description,
+                    image: p.image,
+                    gallery: p.gallery || [],
+                    unit: p.unit,
+                    category_name: mockCategories.find((c) => c.id === p.category_id)?.name ?? null,
+                    price: parseFloat(p.sell_price),
+                    sold_out: !p.is_active || (p.track_stock && (p.stock_qty ?? 0) <= 0),
+                    packs: [],
+                },
+                shop: {
+                    name: 'Smile Mart Cambodia',
+                    footer: 'Thank you for your visit! Powered by Smile Mart.',
+                    currency: mockSharedData.currency,
+                },
             };
         }
 
@@ -407,13 +790,18 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
         case 'settings/Shop':
             return {
                 shop: {
-                    name: 'Smile Mart Cambodia',
-                    phone: '+855 23 991 234',
-                    address: '#45 Street 302, Boeng Keng Kang 1, Phnom Penh',
                     receipt_header: 'Smile Mart Cambodia - BKK1 Branch',
                     receipt_footer: 'Thank you for your visit!',
+                    currency: 'USD',
                     riel_per_usd: 4100,
+                    order_prefix: 'ORD',
+                    logo: null,
+                    favicon: null,
                 },
+                currencies: [
+                    { code: 'USD', symbol: '$', name: 'US Dollar (USD)' },
+                    { code: 'KHR', symbol: '៛', name: 'Khmer Riel (KHR)' },
+                ],
             };
 
         case 'settings/Profile':
@@ -425,11 +813,23 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
         case 'settings/Payments':
             return {
                 payments: {
-                    bakong_account: 'smile_mart@acleda',
-                    merchant_name: 'SMILE MART CAMBODIA',
-                    merchant_city: 'Phnom Penh',
-                    is_active: true,
+                    qr_provider: 'bakong_khqr',
+                    khqr_account_id: 'smile_mart@acleda',
+                    khqr_merchant_name: 'SMILE MART CAMBODIA',
+                    khqr_merchant_city: 'Phnom Penh',
+                    khqr_merchant_id: 'SM-8821',
+                    khqr_acquiring_bank: 'ACLEDA Bank Plc.',
+                    qr_manual_confirm: false,
+                    bakong_environment: 'production',
+                    bakong_token_set: true,
+                    bakong_token_from_env: false,
+                    bakong_calls_today: 92,
+                    bakong_daily_limit: 10000,
                 },
+                providers: [
+                    { key: 'bakong_khqr', label: 'Bakong KHQR (National QR Standard)', verifies: true },
+                    { key: 'manual', label: 'Manual QR / Cashier Confirms', verifies: false },
+                ],
             };
 
         case 'settings/Password':
