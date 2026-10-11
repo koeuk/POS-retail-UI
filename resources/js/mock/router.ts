@@ -152,6 +152,14 @@ function getQueryParams(): Record<string, string> {
     const result: Record<string, string> = {};
     params.forEach((val, key) => {
         result[key] = val;
+        // If key is like filter[search], also set result['search'] for direct access
+        const match = key.match(/^filter\[([^\]]+)\]$/);
+        if (match) {
+            const innerKey = match[1];
+            if (result[innerKey] === undefined) {
+                result[innerKey] = val;
+            }
+        }
     });
     return result;
 }
@@ -694,50 +702,270 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
             const mockActivities = [
                 {
                     id: 1,
-                    description: 'Created product "Coca-Cola Original 330ml Can"',
-                    causer: { id: 1, name: 'Sokha Rith (Admin)' },
-                    subject: { type: 'product', id: 1, label: 'Coca-Cola Original 330ml Can' },
-                    event: 'created',
+                    log_name: 'model',
+                    description: 'Updated price and inventory for "Coca-Cola Original 330ml Can"',
+                    event: 'updated',
+                    subject_type: 'Product',
+                    subject_id: 1,
+                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@posretail.kh' },
                     store: { id: 1, name: 'Main Store (BKK1)' },
                     ip_address: '192.168.1.10',
+                    changes: [
+                        { field: 'sell_price', from: '0.45', to: '0.50' },
+                    ],
                     properties: { sku: 'BEV-COKE-330' },
-                    created_at: '2026-10-09T18:00:00Z',
+                    created_at: '2026-10-10T14:30:00Z',
                 },
                 {
                     id: 2,
-                    description: 'Recorded sale ORD-2026-0046 (18.90 USD)',
-                    causer: { id: 3, name: 'Bopha Chen (Cashier)' },
-                    subject: { type: 'order', id: 102, label: 'ORD-2026-0046' },
+                    log_name: 'money',
+                    description: 'Recorded till sale ORD-2026-0046 (18.90 USD)',
                     event: 'sale',
+                    subject_type: 'Order',
+                    subject_id: 102,
+                    causer: { id: 3, name: 'Bopha Chen (Cashier)', email: 'cashier@posretail.kh' },
                     store: { id: 1, name: 'Main Store (BKK1)' },
                     ip_address: '192.168.1.12',
-                    properties: { amount: '18.90' },
-                    created_at: '2026-10-09T19:12:00Z',
+                    changes: [],
+                    properties: { total: '$18.90', payment: 'KHQR', items_count: '5' },
+                    created_at: '2026-10-10T13:45:00Z',
                 },
                 {
                     id: 3,
+                    log_name: 'model',
                     description: 'Adjusted stock +48 for Malinda Jasmine Rice 5kg',
-                    causer: { id: 1, name: 'Sokha Rith (Admin)' },
-                    subject: { type: 'stock', id: 1, label: 'Malinda Jasmine Rice 5kg' },
                     event: 'updated',
+                    subject_type: 'Stock',
+                    subject_id: 1,
+                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@posretail.kh' },
                     store: { id: 1, name: 'Main Store (BKK1)' },
                     ip_address: '192.168.1.10',
-                    properties: { adjustment: '+48' },
-                    created_at: '2026-10-10T09:15:00Z',
+                    changes: [
+                        { field: 'qty', from: '12', to: '60' },
+                    ],
+                    properties: { reason: 'Delivery shipment in' },
+                    created_at: '2026-10-10T11:20:00Z',
+                },
+                {
+                    id: 4,
+                    log_name: 'model',
+                    description: 'Created customer "Sopheap Chen"',
+                    event: 'created',
+                    subject_type: 'Customer',
+                    subject_id: 1,
+                    causer: { id: 3, name: 'Bopha Chen (Cashier)', email: 'cashier@posretail.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.12',
+                    changes: [],
+                    properties: { phone: '012 889 123', email: 'sopheap.chen@gmail.com' },
+                    created_at: '2026-10-10T10:00:00Z',
+                },
+                {
+                    id: 5,
+                    log_name: 'auth',
+                    description: 'Staff logged in to Till 01 (Front)',
+                    event: 'login',
+                    subject_type: 'User',
+                    subject_id: 3,
+                    causer: { id: 3, name: 'Bopha Chen (Cashier)', email: 'cashier@posretail.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.12',
+                    changes: [],
+                    properties: { register: 'Till 01 (Front)' },
+                    created_at: '2026-10-10T08:00:00Z',
+                },
+                {
+                    id: 6,
+                    log_name: 'money',
+                    description: 'Recorded customer debt settlement of $15.00',
+                    event: 'updated',
+                    subject_type: 'Order',
+                    subject_id: 104,
+                    causer: { id: 2, name: 'Vannak Keo (Manager)', email: 'manager@posretail.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.15',
+                    changes: [
+                        { field: 'paid_amount', from: '0.00', to: '15.00' },
+                    ],
+                    properties: { order_no: 'ORD-2026-0044', method: 'Cash' },
+                    created_at: '2026-10-09T16:30:00Z',
+                },
+                {
+                    id: 7,
+                    log_name: 'model',
+                    description: 'Created category "Snacks & Confectionery"',
+                    event: 'created',
+                    subject_type: 'Category',
+                    subject_id: 2,
+                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@posretail.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.10',
+                    changes: [],
+                    properties: { name: 'Snacks & Confectionery' },
+                    created_at: '2026-10-09T11:00:00Z',
+                },
+                {
+                    id: 8,
+                    log_name: 'access',
+                    description: 'Updated store assignment for Dara Som',
+                    event: 'updated',
+                    subject_type: 'User',
+                    subject_id: 4,
+                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@posretail.kh' },
+                    store: { id: 2, name: 'Tuol Kork Branch' },
+                    ip_address: '192.168.1.10',
+                    changes: [
+                        { field: 'store_id', from: 'Main Store (BKK1)', to: 'Tuol Kork Branch' },
+                    ],
+                    properties: { role: 'Cashier' },
+                    created_at: '2026-10-08T14:20:00Z',
+                },
+                {
+                    id: 9,
+                    log_name: 'model',
+                    description: 'Updated low stock threshold for "Vital Premium Water 500ml"',
+                    event: 'updated',
+                    subject_type: 'Stock',
+                    subject_id: 3,
+                    causer: { id: 2, name: 'Vannak Keo (Manager)', email: 'manager@posretail.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.15',
+                    changes: [
+                        { field: 'low_stock_threshold', from: '10', to: '30' },
+                    ],
+                    properties: { current_stock: '45' },
+                    created_at: '2026-10-08T10:15:00Z',
+                },
+                {
+                    id: 10,
+                    log_name: 'money',
+                    description: 'Completed order ORD-2026-0045 (12.50 USD)',
+                    event: 'sale',
+                    subject_type: 'Order',
+                    subject_id: 101,
+                    causer: { id: 3, name: 'Bopha Chen (Cashier)', email: 'cashier@posretail.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.12',
+                    changes: [],
+                    properties: { total: '$12.50', payment: 'Cash' },
+                    created_at: '2026-10-07T18:45:00Z',
+                },
+                {
+                    id: 11,
+                    log_name: 'access',
+                    description: 'Activated register Till 02 (Express) at Main Store (BKK1)',
+                    event: 'updated',
+                    subject_type: 'Store',
+                    subject_id: 1,
+                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@posretail.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.10',
+                    changes: [
+                        { field: 'is_active', from: 'false', to: 'true' },
+                    ],
+                    properties: { register: 'Till 02 (Express)' },
+                    created_at: '2026-10-06T09:10:00Z',
+                },
+                {
+                    id: 12,
+                    log_name: 'auth',
+                    description: 'Administrator logged in from internal network',
+                    event: 'login',
+                    subject_type: 'User',
+                    subject_id: 1,
+                    causer: { id: 1, name: 'Sokha Rith (Admin)', email: 'admin@posretail.kh' },
+                    store: { id: 1, name: 'Main Store (BKK1)' },
+                    ip_address: '192.168.1.10',
+                    changes: [],
+                    properties: { browser: 'Chrome 122', os: 'Linux' },
+                    created_at: '2026-10-06T08:00:00Z',
                 },
             ];
 
+            const searchVal = (q.search || '').trim().toLowerCase();
+            const logNameVal = q.log_name && q.log_name !== 'all' ? q.log_name : null;
+            const eventVal = q.event && q.event !== 'all' ? q.event : null;
+            const causerVal = q.causer_id && q.causer_id !== 'all' ? q.causer_id : null;
+            const storeVal = q.store_id && q.store_id !== 'all' ? q.store_id : null;
+            const subjectTypeVal = q.subject_type && q.subject_type !== 'all' ? q.subject_type : null;
+            const subjectIdVal = q.subject_id && q.subject_id !== 'all' ? q.subject_id : null;
+            const fromVal = q.from || null;
+            const toVal = q.to || null;
+
+            let filtered = [...mockActivities];
+
+            if (searchVal) {
+                filtered = filtered.filter(
+                    (a) =>
+                        a.description.toLowerCase().includes(searchVal) ||
+                        (a.causer?.name && a.causer.name.toLowerCase().includes(searchVal)) ||
+                        (a.causer?.email && a.causer.email.toLowerCase().includes(searchVal)) ||
+                        (a.ip_address && a.ip_address.includes(searchVal)) ||
+                        (a.subject_type && a.subject_type.toLowerCase().includes(searchVal)),
+                );
+            }
+
+            if (logNameVal) {
+                filtered = filtered.filter((a) => a.log_name === logNameVal);
+            }
+
+            if (eventVal) {
+                filtered = filtered.filter((a) => a.event === eventVal);
+            }
+
+            if (causerVal) {
+                filtered = filtered.filter((a) => a.causer && String(a.causer.id) === causerVal);
+            }
+
+            if (storeVal) {
+                filtered = filtered.filter((a) => a.store && String(a.store.id) === storeVal);
+            }
+
+            if (subjectTypeVal) {
+                filtered = filtered.filter(
+                    (a) => a.subject_type && a.subject_type.toLowerCase() === subjectTypeVal.toLowerCase(),
+                );
+            }
+
+            if (subjectIdVal) {
+                filtered = filtered.filter((a) => a.subject_id && String(a.subject_id) === String(subjectIdVal));
+            }
+
+            if (fromVal) {
+                filtered = filtered.filter((a) => a.created_at && a.created_at.slice(0, 10) >= fromVal);
+            }
+
+            if (toVal) {
+                filtered = filtered.filter((a) => a.created_at && a.created_at.slice(0, 10) <= toVal);
+            }
+
             return {
-                activities: paginate(mockActivities, Number(q.page) || 1, 15),
+                activities: paginate(filtered, Number(q.page) || 1, Number(q.per_page) || 15),
                 filters: {
                     search: q.search || '',
+                    log_name: q.log_name || 'all',
                     event: q.event || 'all',
                     causer_id: q.causer_id || 'all',
                     store_id: q.store_id || 'all',
+                    subject_type: q.subject_type || '',
+                    subject_id: q.subject_id || '',
+                    from: q.from || '',
+                    to: q.to || '',
                 },
                 options: {
-                    logNames: { default: 'General Activity', sales: 'Till Sales', stock: 'Inventory' },
-                    events: ['created', 'updated', 'deleted', 'sale', 'refund', 'login'],
+                    logNames: {
+                        model: 'Catalogue & Stock',
+                        money: 'Sales & Till',
+                        access: 'Security & Staff',
+                        auth: 'Authentication',
+                        stock: 'Inventory',
+                        sales: 'Till Sales',
+                        product: 'Products',
+                        category: 'Categories',
+                        customer: 'Customers',
+                        order: 'Orders',
+                    },
+                    events: ['created', 'updated', 'deleted', 'sale', 'adjustment', 'login'],
                     staff: mockUsers.map((u) => ({ id: u.id, name: u.name })),
                     stores: mockStores.map((s) => ({ id: s.id, name: s.name })),
                 },
@@ -955,8 +1183,8 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
                 subject: { type: subjectType, id: subjectIdNum, label: subjectLabel, exists: true },
                 summary: {
                     total: mockEntries.length,
-                    first_at: mockEntries[mockEntries.length - 1].created_at,
-                    last_at: mockEntries[0].created_at,
+                    first_at: mockEntries.length ? mockEntries[mockEntries.length - 1].created_at : null,
+                    last_at: mockEntries.length ? mockEntries[0].created_at : null,
                 },
                 parent: parentInfo,
                 self_href: selfHref,
@@ -1172,11 +1400,29 @@ export const router = {
         let fullUrl = url;
         if (data && Object.keys(data).length > 0) {
             const params = new URLSearchParams();
+            const appendParam = (prefix: string, value: any) => {
+                if (value === undefined || value === null) return;
+                if (typeof value === 'object' && !Array.isArray(value)) {
+                    Object.entries(value).forEach(([subKey, subVal]) => {
+                        appendParam(`${prefix}[${subKey}]`, subVal);
+                    });
+                } else if (Array.isArray(value)) {
+                    value.forEach((subVal) => {
+                        appendParam(`${prefix}[]`, subVal);
+                    });
+                } else {
+                    params.append(prefix, String(value));
+                }
+            };
+
             Object.entries(data).forEach(([k, v]) => {
-                if (v !== undefined && v !== null) params.append(k, String(v));
+                appendParam(k, v);
             });
-            const delim = fullUrl.includes('?') ? '&' : '?';
-            fullUrl += `${delim}${params.toString()}`;
+            const qs = params.toString();
+            if (qs) {
+                const delim = fullUrl.includes('?') ? '&' : '?';
+                fullUrl += `${delim}${qs}`;
+            }
         }
         return navigateTo(fullUrl, options);
     },

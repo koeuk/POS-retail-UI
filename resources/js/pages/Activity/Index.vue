@@ -132,12 +132,20 @@ function clearFilters() {
 /** Colour by what kind of thing happened, so the eye can skim one class. */
 const toneFor: Record<string, string> = {
     money: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    sales: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
     access: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
     auth: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
     model: 'bg-muted text-muted-foreground',
+    stock: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+    product: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+    category: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+    inventory: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+    customer: 'bg-teal-500/10 text-teal-600 dark:text-teal-400',
+    store: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
+    user: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
 };
 
-const logLabel = (name: string | null) => (name ? (props.options.logNames[name] ?? name) : '—');
+const logLabel = (name: string | null) => (name ? (props.options.logNames[name] ?? fieldLabel(name)) : '—');
 
 const dateFormat = new Intl.DateTimeFormat(undefined, {
     day: 'numeric',
@@ -307,7 +315,7 @@ const subjectLabel = (row: ActivityRow) => (row.subject_type ? `${row.subject_ty
                                 </TableCell>
 
                                 <TableCell>
-                                    <Badge variant="secondary" class="whitespace-nowrap" :class="toneFor[a.log_name ?? 'model']">
+                                    <Badge variant="secondary" class="whitespace-nowrap" :class="toneFor[a.log_name ?? 'model'] ?? toneFor.model">
                                         {{ logLabel(a.log_name) }}
                                     </Badge>
                                 </TableCell>
@@ -321,7 +329,7 @@ const subjectLabel = (row: ActivityRow) => (row.subject_type ? `${row.subject_ty
                     <li v-for="a in activities.data" :key="a.id" class="rounded-xl border border-border bg-card px-3.5 py-3">
                         <div class="flex items-start justify-between gap-3">
                             <p class="min-w-0 flex-1 font-medium leading-tight">{{ a.description }}</p>
-                            <Badge variant="secondary" class="shrink-0 whitespace-nowrap text-[10px]" :class="toneFor[a.log_name ?? 'model']">
+                            <Badge variant="secondary" class="shrink-0 whitespace-nowrap text-[10px]" :class="toneFor[a.log_name ?? 'model'] ?? toneFor.model">
                                 {{ logLabel(a.log_name) }}
                             </Badge>
                         </div>

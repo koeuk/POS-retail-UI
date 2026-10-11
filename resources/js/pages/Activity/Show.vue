@@ -136,7 +136,7 @@ const fieldLabel = (field: string) =>
                                     </TableCell>
                                     <TableCell>
                                         <p class="text-sm font-medium leading-tight">{{ a.description }}</p>
-                                        <ul v-if="a.changes.length" class="mt-1.5 space-y-0.5">
+                                        <ul v-if="a.changes && a.changes.length" class="mt-1.5 space-y-0.5">
                                             <li v-for="c in a.changes" :key="c.field" class="text-xs leading-snug">
                                                 <span class="text-muted-foreground">{{ fieldLabel(c.field) }}:</span>
                                                 <span v-if="c.from" class="tabular font-mono text-muted-foreground line-through">{{ c.from }}</span>
@@ -146,7 +146,7 @@ const fieldLabel = (field: string) =>
                                                 <span v-else class="italic text-muted-foreground">empty</span>
                                             </li>
                                         </ul>
-                                        <p v-if="Object.keys(a.properties).length" class="mt-1.5 text-xs text-muted-foreground">
+                                        <p v-if="a.properties && Object.keys(a.properties).length" class="mt-1.5 text-xs text-muted-foreground">
                                             <span v-for="(value, key) in a.properties" :key="key" class="mr-2 inline-block">
                                                 {{ fieldLabel(String(key)) }}: <span class="tabular font-mono">{{ value }}</span>
                                             </span>
@@ -177,7 +177,7 @@ const fieldLabel = (field: string) =>
                                 · {{ a.causer?.name ?? 'System' }}
                                 <template v-if="a.store"> · {{ a.store.name }}</template>
                             </p>
-                            <ul v-if="a.changes.length" class="mt-1.5 space-y-0.5">
+                            <ul v-if="a.changes && a.changes.length" class="mt-1.5 space-y-0.5">
                                 <li v-for="c in a.changes" :key="c.field" class="text-xs leading-snug">
                                     <span class="text-muted-foreground">{{ fieldLabel(c.field) }}:</span>
                                     <span v-if="c.from" class="tabular font-mono text-muted-foreground line-through">{{ c.from }}</span>
@@ -187,7 +187,7 @@ const fieldLabel = (field: string) =>
                                     <span v-else class="italic text-muted-foreground">empty</span>
                                 </li>
                             </ul>
-                            <p v-if="Object.keys(a.properties).length" class="mt-1.5 text-xs text-muted-foreground">
+                            <p v-if="a.properties && Object.keys(a.properties).length" class="mt-1.5 text-xs text-muted-foreground">
                                 <span v-for="(value, key) in a.properties" :key="key" class="mr-2 inline-block">
                                     {{ fieldLabel(String(key)) }}: <span class="tabular font-mono">{{ value }}</span>
                                 </span>
