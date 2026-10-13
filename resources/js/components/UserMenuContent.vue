@@ -2,7 +2,7 @@
 import UserInfo from '@/components/UserInfo.vue';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import type { User } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { LogOut, Settings } from 'lucide-vue-next';
 
 interface Props {
@@ -20,18 +20,18 @@ defineProps<Props>();
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
-        <DropdownMenuItem :as-child="true">
-            <Link class="block w-full" :href="route('profile.edit')" as="button">
+        <DropdownMenuItem :as-child="true" @select="router.visit(route('profile.edit'))">
+            <Link class="flex w-full items-center" :href="route('profile.edit')">
                 <Settings class="mr-2 h-4 w-4" />
-                Settings
+                <span>Settings</span>
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
-    <DropdownMenuItem :as-child="true">
-        <Link class="block w-full" method="post" :href="route('logout')" as="button">
+    <DropdownMenuItem :as-child="true" @select="router.post(route('logout'))">
+        <Link class="flex w-full items-center" method="post" :href="route('logout')" as="button">
             <LogOut class="mr-2 h-4 w-4" />
-            Log out
+            <span>Log out</span>
         </Link>
     </DropdownMenuItem>
 </template>

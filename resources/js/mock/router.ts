@@ -1428,6 +1428,9 @@ export const router = {
         return navigateTo(fullUrl, options);
     },
     post(url: string, data: any = {}, options: any = {}) {
+        if (url === '/logout' || url.endsWith('/logout')) {
+            return navigateTo('/login', options);
+        }
         handleMockMutation('post', url, data);
         if (options.preserveScroll !== false) options.preserveScroll = true;
         return navigateTo(currentPath.value + currentSearch.value, options);
@@ -1744,13 +1747,23 @@ export const Link = defineComponent({
         }
 
         return () => {
+            const { onClick: parentOnClick, ...restAttrs } = attrs;
+            const handleClick = (e: MouseEvent) => {
+                if (typeof parentOnClick === 'function') {
+                    (parentOnClick as Function)(e);
+                } else if (Array.isArray(parentOnClick)) {
+                    parentOnClick.forEach((fn) => typeof fn === 'function' && fn(e));
+                }
+                onClick(e);
+            };
+
             if (props.as === 'button') {
                 return h(
                     'button',
                     {
                         type: 'button',
-                        onClick,
-                        ...attrs,
+                        ...restAttrs,
+                        onClick: handleClick,
                     },
                     slots.default ? slots.default() : undefined,
                 );
@@ -1760,8 +1773,8 @@ export const Link = defineComponent({
                 'a',
                 {
                     href: props.href,
-                    onClick,
-                    ...attrs,
+                    ...restAttrs,
+                    onClick: handleClick,
                 },
                 slots.default ? slots.default() : undefined,
             );
