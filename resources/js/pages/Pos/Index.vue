@@ -268,15 +268,6 @@ onMounted(loadFeed);
             without looking away from what they are ringing up.
         -->
         <template #actions>
-            <div v-if="feed && feed.registers.length > 1" class="flex gap-1">
-                <button v-for="r in feed.registers" :key="r.id" type="button"
-                    class="press h-8 rounded-md border px-2.5 text-xs font-medium"
-                    :class="registerId === r.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground'"
-                    @click="chooseRegister(r.id)">
-                    {{ r.name }}
-                </button>
-            </div>
-
             <SyncStatusBadge :online="sync.online.value" :syncing="sync.syncing.value" :pending="sync.pending.value"
                 :rejected="sync.rejected.value" :auth-expired="sync.authExpired.value"
                 @retry="sync.rejected.value > 0 ? sync.retryRejected() : sync.flush()" />

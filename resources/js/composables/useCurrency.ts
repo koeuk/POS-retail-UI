@@ -18,7 +18,7 @@ export interface CurrencyDef {
     riel_per_usd: number;
 }
 
-export const USD: CurrencyDef = { code: 'USD', symbol: '$', decimals: 2, riel_per_usd: 4100 };
+export const USD: CurrencyDef = { code: 'USD', symbol: '$', decimals: 2, riel_per_usd: 4000 };
 
 /** How many minor units make one whole one: 100 for dollars, 1 for riel. */
 export const minorFactor = (def: CurrencyDef): number => 10 ** def.decimals;

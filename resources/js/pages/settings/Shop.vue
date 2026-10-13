@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
 
 /*
  * A live example of a $10.00 shelf price, so the effect of the rate is
- * visible before Save. Typing 4100 and seeing ៛41,000 is worth more than a
+ * visible before Save. Typing 4000 and seeing ៛40,000 is worth more than a
  * paragraph explaining it.
  */
 const preview = computed(() => {

@@ -1240,7 +1240,7 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
                     receipt_header: 'Smile Mart Cambodia - BKK1 Branch',
                     receipt_footer: 'Thank you for your visit!',
                     currency: 'USD',
-                    riel_per_usd: 4100,
+                    riel_per_usd: 4000,
                     order_prefix: 'ORD',
                     logo: null,
                     favicon: null,

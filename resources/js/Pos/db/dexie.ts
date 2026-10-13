@@ -80,7 +80,7 @@ export async function readCachedFeed() {
         settings: meta.settings ?? {
             receipt_header: 'Receipt',
             receipt_footer: null,
-            currency: { code: 'USD', symbol: '$', decimals: 2, riel_per_usd: 4100 },
+            currency: { code: 'USD', symbol: '$', decimals: 2, riel_per_usd: 4000 },
         },
     };
 }
