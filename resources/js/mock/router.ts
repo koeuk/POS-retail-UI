@@ -625,9 +625,10 @@ function resolveRouteProps(name: string, path: string): Record<string, any> {
                     revenue: ((40 - idx * 5) * parseFloat(p.sell_price)).toFixed(2),
                 })),
                 byPayment: [
-                    { method: 'Cash', count: 180, amount: '4,890.00' },
-                    { method: 'Bakong KHQR', count: 92, amount: '3,285.50' },
-                    { method: 'Customer Debt', count: 12, amount: '245.00' },
+                    { method: 'cash', count: 180, amount: '4,890.00' },
+                    { method: 'qr', count: 92, amount: '3,285.50' },
+                    { method: 'card', count: 48, amount: '1,520.00' },
+                    { method: 'credit', count: 12, amount: '245.00' },
                 ],
             };
 
@@ -1336,17 +1337,17 @@ async function navigateTo(targetUrl: string, options: any = {}) {
     const componentName = matchPathToComponent(newPath);
     currentComponentName.value = componentName;
 
+    // Set page props before mounting new component
+    const resolvedProps = resolveRouteProps(componentName, newPath);
+    Object.keys(currentPageProps).forEach((k) => delete currentPageProps[k]);
+    Object.assign(currentPageProps, resolvedProps);
+
     // Load component
     const pageLoader = registeredPages[`../pages/${componentName}.vue`];
     if (pageLoader) {
         const mod = await pageLoader();
         currentComponent.value = markRaw(mod.default);
     }
-
-    // Set page props
-    const resolvedProps = resolveRouteProps(componentName, newPath);
-    Object.keys(currentPageProps).forEach((k) => delete currentPageProps[k]);
-    Object.assign(currentPageProps, resolvedProps);
 
     if (!options.preserveScroll) {
         window.scrollTo({ top: 0, behavior: 'instant' });
@@ -1846,11 +1847,12 @@ export function createSpaApp(options: {
     console.log('[Inertia Mock] Initial loader found:', !!initialLoader);
     
     if (initialLoader) {
+        const initialProps = resolveRouteProps(initialComponent, currentPath.value);
+        Object.assign(currentPageProps, initialProps);
+
         initialLoader().then((mod) => {
             console.log('[Inertia Mock] Component loaded:', mod);
             currentComponent.value = markRaw(mod.default);
-            const initialProps = resolveRouteProps(initialComponent, currentPath.value);
-            Object.assign(currentPageProps, initialProps);
 
             options.setup({
                 el,

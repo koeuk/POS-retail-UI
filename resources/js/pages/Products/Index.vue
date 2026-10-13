@@ -18,14 +18,23 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { usePermissions } from '@/composables/usePermissions';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { currentPerPage, imageSrc } from '@/lib/utils';
 import type { Category, Paginated, Product } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Boxes, Eye, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { Boxes, Eye, Pencil, Plus, Search, SlidersHorizontal, Trash2 } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
     products: Paginated<Product>;
@@ -65,6 +74,20 @@ watch(search, () => {
 });
 
 watch([categoryId, status], applyFilters);
+
+const mobileFiltersOpen = ref(false);
+
+const activeFilterCount = computed(() => {
+    let count = 0;
+    if (categoryId.value !== ALL) count++;
+    if (status.value !== ALL) count++;
+    return count;
+});
+
+function resetFilters() {
+    categoryId.value = ALL;
+    status.value = ALL;
+}
 
 const pendingDelete = ref<Product | null>(null);
 
@@ -113,39 +136,112 @@ function stockTone(qty: number | null | undefined) {
             </PageHeader>
 
             <div class="list-panel animate-rise" style="animation-delay: 60ms">
-                <!-- Filters -->
-                <!-- Same shape as Order History: full-width search, chips below. -->
-                <!-- One row: search flexes, the filters keep their width and
-                     wrap under it on screens too narrow to hold all three. -->
-                <div class="flex flex-wrap items-center gap-2 border-b border-border p-3">
-                    <div class="relative min-w-[14rem] flex-1">
+                <!-- Filters: on mobile, shows search + sheet trigger icon; on desktop, shows search + selects inline -->
+                <div class="flex items-center gap-2 border-b border-border p-3">
+                    <div class="relative min-w-0 flex-1">
                         <Search class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input v-model="search" placeholder="Search name, SKU or barcode…" class="h-10 rounded-full pl-9" autocomplete="off" />
                     </div>
 
-                    <Select v-model="categoryId">
-                        <SelectTrigger class="h-10 w-auto min-w-[7.5rem] shrink-0 rounded-full">
-                            <SelectValue placeholder="Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem :value="ALL">All categories</SelectItem>
-                            <SelectItem v-for="c in categories" :key="c.id" :value="String(c.id)">
-                                {{ c.name }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <!-- Mobile filter button icon (triggers bottom sheet) -->
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        class="relative size-10 shrink-0 rounded-full md:hidden"
+                        :class="{ 'border-primary text-primary bg-primary/10': activeFilterCount > 0 }"
+                        aria-label="Filter products"
+                        @click="mobileFiltersOpen = true"
+                    >
+                        <SlidersHorizontal class="size-4" />
+                        <span
+                            v-if="activeFilterCount > 0"
+                            class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
+                        >
+                            {{ activeFilterCount }}
+                        </span>
+                    </Button>
 
-                    <Select v-model="status">
-                        <SelectTrigger class="h-10 w-auto min-w-[7rem] shrink-0 rounded-full">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem :value="ALL">All status</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <!-- Desktop filters (inline) -->
+                    <div class="hidden items-center gap-2 md:flex">
+                        <Select v-model="categoryId">
+                            <SelectTrigger class="h-10 w-auto min-w-[7.5rem] shrink-0 rounded-full">
+                                <SelectValue placeholder="Category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem :value="ALL">All categories</SelectItem>
+                                <SelectItem v-for="c in categories" :key="c.id" :value="String(c.id)">
+                                    {{ c.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select v-model="status">
+                            <SelectTrigger class="h-10 w-auto min-w-[7rem] shrink-0 rounded-full">
+                                <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem :value="ALL">All status</SelectItem>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="inactive">Inactive</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
+
+                <!-- Mobile Filter Bottom Sheet -->
+                <Sheet v-model:open="mobileFiltersOpen">
+                    <SheetContent side="bottom" class="max-h-[85vh] rounded-t-2xl overflow-y-auto px-5 py-6">
+                        <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
+                        <SheetHeader class="mb-4 text-left">
+                            <SheetTitle class="font-display text-lg font-bold">Filter Products</SheetTitle>
+                            <SheetDescription class="text-xs text-muted-foreground">
+                                Filter catalogue items by category and status
+                            </SheetDescription>
+                        </SheetHeader>
+
+                        <div class="space-y-4">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Category</label>
+                                <Select v-model="categoryId">
+                                    <SelectTrigger class="h-11 w-full rounded-xl">
+                                        <SelectValue placeholder="Category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem :value="ALL">All categories</SelectItem>
+                                        <SelectItem v-for="c in categories" :key="c.id" :value="String(c.id)">
+                                            {{ c.name }}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</label>
+                                <Select v-model="status">
+                                    <SelectTrigger class="h-11 w-full rounded-xl">
+                                        <SelectValue placeholder="Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem :value="ALL">All status</SelectItem>
+                                        <SelectItem value="active">Active</SelectItem>
+                                        <SelectItem value="inactive">Inactive</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <SheetFooter class="mt-6 flex flex-row items-center gap-2">
+                            <Button variant="outline" class="flex-1 rounded-xl" @click="resetFilters">
+                                Reset
+                            </Button>
+                            <SheetClose as-child>
+                                <Button class="flex-1 rounded-xl">
+                                    Done
+                                </Button>
+                            </SheetClose>
+                        </SheetFooter>
+                    </SheetContent>
+                </Sheet>
 
                 <!-- Table -->
                 <div v-if="products.data.length" class="hidden overflow-x-auto md:block">

@@ -12,16 +12,25 @@ import { Head, router } from '@inertiajs/vue3';
 import { Boxes, Download, Receipt, TrendingUp } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
-const props = defineProps<{
-    filters: { from: string; to: string };
-    totals: { orders: number; sales: string; items: number; basket: string };
-    byDay: { day: string; orders: number; sales: string }[];
-    byProduct: { product_name: string; qty: number; revenue: string }[];
-    byPayment: { method: string; count: number; amount: string }[];
-}>();
+const props = withDefaults(
+    defineProps<{
+        filters?: { from: string; to: string };
+        totals?: { orders: number; sales: string; items: number; basket: string };
+        byDay?: { day: string; orders: number; sales: string }[];
+        byProduct?: { product_name: string; qty: number; revenue: string }[];
+        byPayment?: { method: string; count: number; amount: string }[];
+    }>(),
+    {
+        filters: () => ({ from: '', to: '' }),
+        totals: () => ({ orders: 0, sales: '0.00', items: 0, basket: '0.00' }),
+        byDay: () => [],
+        byProduct: () => [],
+        byPayment: () => [],
+    },
+);
 
-const from = ref(props.filters.from);
-const to = ref(props.filters.to);
+const from = ref(props.filters?.from ?? '');
+const to = ref(props.filters?.to ?? '');
 
 /** Filters sit in one row above the charts and reload on change. */
 watch([from, to], () => {
@@ -53,19 +62,22 @@ const METHOD_LABEL: Record<string, string> = {
 };
 
 const paymentRows = computed(() =>
-    props.byPayment.map((row) => ({
-        label: METHOD_LABEL[row.method] ?? row.method,
-        value: Number(row.amount),
-        meta: `${row.count}×`,
-        slot: METHOD_SLOT[row.method] ?? 0,
-    })),
+    (props.byPayment ?? []).map((row) => {
+        const m = (row.method ?? '').toLowerCase();
+        return {
+            label: METHOD_LABEL[m] ?? row.method,
+            value: Number(row.amount || 0),
+            meta: `${row.count ?? 0}×`,
+            slot: METHOD_SLOT[m] ?? 0,
+        };
+    }),
 );
 
 const productRows = computed(() =>
-    props.byProduct.slice(0, 8).map((row) => ({
+    (props.byProduct ?? []).slice(0, 8).map((row) => ({
         label: row.product_name,
-        value: Number(row.revenue),
-        meta: `${row.qty}`,
+        value: Number(row.revenue || 0),
+        meta: `${row.qty ?? 0}`,
     })),
 );
 
