@@ -1498,8 +1498,8 @@ function handleMockMutation(method: string, url: string, data: any) {
             unit: data.unit || 'unit',
             track_stock: data.track_stock ?? true,
             is_active: true,
-            image: null,
-            gallery: null,
+            image: data.image_url || data.image || null,
+            gallery: data.gallery || null,
         });
     }
 
@@ -1542,6 +1542,8 @@ function handleMockMutation(method: string, url: string, data: any) {
             if (data.description !== undefined) prd.description = data.description;
             if (data.unit !== undefined) prd.unit = data.unit;
             if (data.track_stock !== undefined) prd.track_stock = data.track_stock;
+            if (data.image_url !== undefined) prd.image = data.image_url;
+            if (data.image !== undefined) prd.image = data.image;
         }
     }
 
