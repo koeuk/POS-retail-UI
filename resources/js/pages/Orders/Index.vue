@@ -5,16 +5,26 @@ import Money from '@/components/Money.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import Pagination from '@/components/Pagination.vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCurrency } from '@/composables/useCurrency';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { currentPerPage } from '@/lib/utils';
 import type { Paginated } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { CloudOff, Eye, HandCoins, Printer, ReceiptText, Search, Utensils } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { CloudOff, Eye, HandCoins, Printer, ReceiptText, Search, SlidersHorizontal, Utensils } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 interface OrderRow {
     id: number;
@@ -75,6 +85,23 @@ watch(search, () => {
 });
 watch([status, method, from, to], reload);
 
+const mobileFiltersOpen = ref(false);
+
+const activeFilterCount = computed(() => {
+    let count = 0;
+    if (status.value !== ALL) count++;
+    if (method.value !== ALL) count++;
+    if (from.value || to.value) count++;
+    return count;
+});
+
+function resetFilters() {
+    status.value = ALL;
+    method.value = ALL;
+    from.value = '';
+    to.value = '';
+}
+
 /* The moment the sale happened, which for an offline order is not the moment
    the row was created here. */
 const soldAt = (row: OrderRow) =>
@@ -101,32 +128,105 @@ const methodLabel = (m: string) => (m === 'qr' ? 'QR' : m.charAt(0).toUpperCase(
             />
 
             <div class="animate-rise rounded-xl border border-border bg-card" style="animation-delay: 60ms">
-                <!-- One row: search flexes, the filters keep their width and
-                     wrap under it on screens too narrow to hold all four. -->
-                <div class="flex flex-wrap items-center gap-2 border-b border-border p-3">
-                    <div class="relative min-w-[14rem] flex-1">
+                <!-- Filters: on mobile, shows search + sheet trigger icon; on desktop, shows search + filters inline -->
+                <div class="flex items-center gap-2 border-b border-border p-3">
+                    <div class="relative min-w-0 flex-1">
                         <Search class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input v-model="search" placeholder="Order no., cashier or customer…" class="h-10 rounded-full pl-9" autocomplete="off" />
                     </div>
 
-                    <Select v-model="status">
-                        <SelectTrigger class="h-10 w-auto min-w-[7rem] shrink-0 rounded-full"><SelectValue placeholder="Status" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem :value="ALL">All status</SelectItem>
-                            <SelectItem v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <!-- Mobile filter button icon (triggers bottom sheet) -->
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        class="relative size-10 shrink-0 rounded-full md:hidden"
+                        :class="{ 'border-primary text-primary bg-primary/10': activeFilterCount > 0 }"
+                        aria-label="Filter orders"
+                        @click="mobileFiltersOpen = true"
+                    >
+                        <SlidersHorizontal class="size-4" />
+                        <span
+                            v-if="activeFilterCount > 0"
+                            class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
+                        >
+                            {{ activeFilterCount }}
+                        </span>
+                    </Button>
 
-                    <Select v-model="method">
-                        <SelectTrigger class="h-10 w-auto min-w-[7.5rem] shrink-0 rounded-full"><SelectValue placeholder="Payment" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem :value="ALL">All payments</SelectItem>
-                            <SelectItem v-for="m in methods" :key="m.value" :value="m.value">{{ m.label }}</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <!-- Desktop filters (inline) -->
+                    <div class="hidden items-center gap-2 md:flex">
+                        <Select v-model="status">
+                            <SelectTrigger class="h-10 w-auto min-w-[7rem] shrink-0 rounded-full"><SelectValue placeholder="Status" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem :value="ALL">All status</SelectItem>
+                                <SelectItem v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</SelectItem>
+                            </SelectContent>
+                        </Select>
 
-                    <DateRangePicker v-model:from="from" v-model:to="to" placeholder="Any date" class="h-10 shrink-0 rounded-full" />
+                        <Select v-model="method">
+                            <SelectTrigger class="h-10 w-auto min-w-[7.5rem] shrink-0 rounded-full"><SelectValue placeholder="Payment" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem :value="ALL">All payments</SelectItem>
+                                <SelectItem v-for="m in methods" :key="m.value" :value="m.value">{{ m.label }}</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <DateRangePicker v-model:from="from" v-model:to="to" placeholder="Any date" class="h-10 shrink-0 rounded-full" />
+                    </div>
                 </div>
+
+                <!-- Mobile Filter Bottom Sheet -->
+                <Sheet v-model:open="mobileFiltersOpen">
+                    <SheetContent side="bottom" class="max-h-[85vh] rounded-t-2xl overflow-y-auto px-5 py-6">
+                        <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
+                        <SheetHeader class="mb-4 text-left">
+                            <SheetTitle class="font-display text-lg font-bold">Filter Orders</SheetTitle>
+                            <SheetDescription class="text-xs text-muted-foreground">
+                                Filter sales by status, payment method, or date range
+                            </SheetDescription>
+                        </SheetHeader>
+
+                        <div class="space-y-4">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</label>
+                                <Select v-model="status">
+                                    <SelectTrigger class="h-11 w-full rounded-xl"><SelectValue placeholder="Status" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem :value="ALL">All status</SelectItem>
+                                        <SelectItem v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Payment Method</label>
+                                <Select v-model="method">
+                                    <SelectTrigger class="h-11 w-full rounded-xl"><SelectValue placeholder="Payment" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem :value="ALL">All payments</SelectItem>
+                                        <SelectItem v-for="m in methods" :key="m.value" :value="m.value">{{ m.label }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Date Range</label>
+                                <DateRangePicker v-model:from="from" v-model:to="to" placeholder="Any date" class="h-11 w-full rounded-xl" />
+                            </div>
+                        </div>
+
+                        <SheetFooter class="mt-6 flex flex-row items-center gap-2">
+                            <Button variant="outline" class="flex-1 rounded-xl" @click="resetFilters">
+                                Reset
+                            </Button>
+                            <SheetClose as-child>
+                                <Button class="flex-1 rounded-xl">
+                                    Done
+                                </Button>
+                            </SheetClose>
+                        </SheetFooter>
+                    </SheetContent>
+                </Sheet>
 
                 <!-- Phone: one card per sale. A seven-column table has no honest
                      way to fit 390px — it only pretends to, behind a sideways

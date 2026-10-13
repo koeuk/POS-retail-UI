@@ -7,12 +7,21 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { currentPerPage } from '@/lib/utils';
 import type { Paginated } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { History, Search, X } from 'lucide-vue-next';
+import { History, Search, SlidersHorizontal, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface Change {
@@ -129,6 +138,18 @@ function clearFilters() {
     to.value = '';
 }
 
+const mobileFiltersOpen = ref(false);
+
+const activeFilterCount = computed(() => {
+    let count = 0;
+    if (logName.value !== ALL) count++;
+    if (event.value !== ALL) count++;
+    if (causerId.value !== ALL) count++;
+    if (storeId.value !== ALL) count++;
+    if (from.value || to.value) count++;
+    return count;
+});
+
 /** Colour by what kind of thing happened, so the eye can skim one class. */
 const toneFor: Record<string, string> = {
     money: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
@@ -194,10 +215,9 @@ const subjectLabel = (row: ActivityRow) => (row.subject_type ? `${row.subject_ty
                         </Badge>
                     </div>
 
-                    <!-- One row: search flexes, the filters keep their width and
-                         wrap under it on screens too narrow to hold them all. -->
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="relative min-w-[14rem] flex-1">
+                    <!-- Filters: on mobile, shows search + sheet trigger icon; on desktop, shows search + filters inline -->
+                    <div class="flex items-center gap-2">
+                        <div class="relative min-w-0 flex-1">
                             <Search class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 v-model="search"
@@ -207,58 +227,161 @@ const subjectLabel = (row: ActivityRow) => (row.subject_type ? `${row.subject_ty
                             />
                         </div>
 
-                        <Select v-model="logName">
-                            <SelectTrigger class="h-10 w-auto min-w-[9rem] shrink-0 rounded-full" aria-label="Kind"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem :value="ALL">Everything</SelectItem>
-                                <SelectItem v-for="(label, key) in options.logNames" :key="key" :value="String(key)">{{ label }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <Select v-model="causerId">
-                            <SelectTrigger class="h-10 w-auto min-w-[8rem] shrink-0 rounded-full" aria-label="Staff"
-                                ><SelectValue placeholder="Anyone"
-                            /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem :value="ALL">Anyone</SelectItem>
-                                <SelectItem v-for="s in options.staff" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <Select v-if="options.events.length" v-model="event">
-                            <SelectTrigger class="h-10 w-auto min-w-[8rem] shrink-0 rounded-full" aria-label="Action"
-                                ><SelectValue placeholder="Any action"
-                            /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem :value="ALL">Any action</SelectItem>
-                                <SelectItem v-for="e in options.events" :key="e" :value="e">{{ fieldLabel(e) }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <Select v-if="options.stores.length > 1" v-model="storeId">
-                            <SelectTrigger class="h-10 w-auto min-w-[8rem] shrink-0 rounded-full" aria-label="Store"
-                                ><SelectValue placeholder="All stores"
-                            /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem :value="ALL">All stores</SelectItem>
-                                <SelectItem v-for="s in options.stores" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <DateRangePicker
-                            :from="from || undefined"
-                            :to="to || undefined"
-                            placeholder="Any date"
-                            class="h-10 shrink-0 rounded-full"
-                            @update:from="(v) => (from = v ?? '')"
-                            @update:to="(v) => (to = v ?? '')"
-                        />
-
-                        <Button v-if="hasFilters" variant="ghost" class="press h-10 shrink-0 rounded-full" @click="clearFilters">
-                            <X class="size-4" />
-                            Clear
+                        <!-- Mobile filter button icon (triggers bottom sheet) -->
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            class="relative size-10 shrink-0 rounded-full md:hidden"
+                            :class="{ 'border-primary text-primary bg-primary/10': activeFilterCount > 0 }"
+                            aria-label="Filter activity"
+                            @click="mobileFiltersOpen = true"
+                        >
+                            <SlidersHorizontal class="size-4" />
+                            <span
+                                v-if="activeFilterCount > 0"
+                                class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
+                            >
+                                {{ activeFilterCount }}
+                            </span>
                         </Button>
+
+                        <!-- Desktop filters (inline) -->
+                        <div class="hidden items-center gap-2 md:flex md:flex-wrap">
+                            <Select v-model="logName">
+                                <SelectTrigger class="h-10 w-auto min-w-[9rem] shrink-0 rounded-full" aria-label="Kind"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem :value="ALL">Everything</SelectItem>
+                                    <SelectItem v-for="(label, key) in options.logNames" :key="key" :value="String(key)">{{ label }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select v-model="causerId">
+                                <SelectTrigger class="h-10 w-auto min-w-[8rem] shrink-0 rounded-full" aria-label="Staff"
+                                    ><SelectValue placeholder="Anyone"
+                                /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem :value="ALL">Anyone</SelectItem>
+                                    <SelectItem v-for="s in options.staff" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select v-if="options.events.length" v-model="event">
+                                <SelectTrigger class="h-10 w-auto min-w-[8rem] shrink-0 rounded-full" aria-label="Action"
+                                    ><SelectValue placeholder="Any action"
+                                /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem :value="ALL">Any action</SelectItem>
+                                    <SelectItem v-for="e in options.events" :key="e" :value="e">{{ fieldLabel(e) }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select v-if="options.stores.length > 1" v-model="storeId">
+                                <SelectTrigger class="h-10 w-auto min-w-[8rem] shrink-0 rounded-full" aria-label="Store"
+                                    ><SelectValue placeholder="All stores"
+                                /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem :value="ALL">All stores</SelectItem>
+                                    <SelectItem v-for="s in options.stores" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <DateRangePicker
+                                :from="from || undefined"
+                                :to="to || undefined"
+                                placeholder="Any date"
+                                class="h-10 shrink-0 rounded-full"
+                                @update:from="(v) => (from = v ?? '')"
+                                @update:to="(v) => (to = v ?? '')"
+                            />
+
+                            <Button v-if="hasFilters" variant="ghost" class="press h-10 shrink-0 rounded-full" @click="clearFilters">
+                                <X class="size-4" />
+                                Clear
+                            </Button>
+                        </div>
                     </div>
+
+                    <!-- Mobile Filter Bottom Sheet -->
+                    <Sheet v-model:open="mobileFiltersOpen">
+                        <SheetContent side="bottom" class="max-h-[85vh] rounded-t-2xl overflow-y-auto px-5 py-6">
+                            <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
+                            <SheetHeader class="mb-4 text-left">
+                                <SheetTitle class="font-display text-lg font-bold">Filter Activity Log</SheetTitle>
+                                <SheetDescription class="text-xs text-muted-foreground">
+                                    Filter audit records by kind, staff, action, or date
+                                </SheetDescription>
+                            </SheetHeader>
+
+                            <div class="space-y-4">
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Category / Kind</label>
+                                    <Select v-model="logName">
+                                        <SelectTrigger class="h-11 w-full rounded-xl" aria-label="Kind"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem :value="ALL">Everything</SelectItem>
+                                            <SelectItem v-for="(label, key) in options.logNames" :key="key" :value="String(key)">{{ label }}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Staff Member</label>
+                                    <Select v-model="causerId">
+                                        <SelectTrigger class="h-11 w-full rounded-xl" aria-label="Staff"><SelectValue placeholder="Anyone" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem :value="ALL">Anyone</SelectItem>
+                                            <SelectItem v-for="s in options.staff" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div v-if="options.events.length" class="space-y-1.5">
+                                    <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Action</label>
+                                    <Select v-model="event">
+                                        <SelectTrigger class="h-11 w-full rounded-xl" aria-label="Action"><SelectValue placeholder="Any action" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem :value="ALL">Any action</SelectItem>
+                                            <SelectItem v-for="e in options.events" :key="e" :value="e">{{ fieldLabel(e) }}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div v-if="options.stores.length > 1" class="space-y-1.5">
+                                    <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Store</label>
+                                    <Select v-model="storeId">
+                                        <SelectTrigger class="h-11 w-full rounded-xl" aria-label="Store"><SelectValue placeholder="All stores" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem :value="ALL">All stores</SelectItem>
+                                            <SelectItem v-for="s in options.stores" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Date Range</label>
+                                    <DateRangePicker
+                                        :from="from || undefined"
+                                        :to="to || undefined"
+                                        placeholder="Any date"
+                                        class="h-11 w-full rounded-xl"
+                                        @update:from="(v) => (from = v ?? '')"
+                                        @update:to="(v) => (to = v ?? '')"
+                                    />
+                                </div>
+                            </div>
+
+                            <SheetFooter class="mt-6 flex flex-row items-center gap-2">
+                                <Button variant="outline" class="flex-1 rounded-xl" @click="clearFilters">
+                                    Reset
+                                </Button>
+                                <SheetClose as-child>
+                                    <Button class="flex-1 rounded-xl">
+                                        Done
+                                    </Button>
+                                </SheetClose>
+                            </SheetFooter>
+                        </SheetContent>
+                    </Sheet>
                 </div>
 
                 <!-- Desktop: one row per entry, changes inline underneath. -->
