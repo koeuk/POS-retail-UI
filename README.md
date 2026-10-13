@@ -81,7 +81,7 @@ POS-retail-UI/
     │   └── app.css         # Tailwind directives & CSS design tokens
     └── js/
         ├── app.ts          # App bootstrap, Pinia setup, plugins
-        ├── components/     # UI widgets (AppSidebar, AppHeader, Modals, Tables, Charts)
+        ├── components/     # UI widgets (AppSidebar, AppSidebarHeader, Modals, Tables, Charts)
         ├── composables/    # Reusable hooks (useCurrency, usePermissions, useAppearance)
         ├── layouts/        # AppLayout, SettingsLayout, AuthSimpleLayout
         ├── mock/           # Mock data arrays & client-side routing adapter

@@ -4,9 +4,7 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 export default {
     darkMode: ['class'],
     content: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
-        './resources/views/**/*.blade.php',
+        './index.html',
         './resources/js/**/*.{vue,js,ts,jsx,tsx}',
     ],
     theme: {
