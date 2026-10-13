@@ -296,6 +296,83 @@ function confirmDelete() {
             </DialogContent>
         </Dialog>
 
+        <!-- Mobile Customer Actions Sheet -->
+        <Sheet v-model:open="actionSheetOpen">
+            <SheetContent side="bottom" class="max-h-[85vh] rounded-t-2xl overflow-y-auto px-5 py-6">
+                <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
+                <SheetHeader v-if="actionCustomer" class="mb-4 text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold">
+                            {{ actionCustomer.name.charAt(0).toUpperCase() }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <SheetTitle class="truncate font-display text-base font-bold">{{ actionCustomer.name }}</SheetTitle>
+                            <SheetDescription class="truncate text-xs text-muted-foreground">
+                                <span v-if="actionCustomer.phone" class="font-mono">{{ actionCustomer.phone }}</span>
+                                <span v-if="actionCustomer.phone && actionCustomer.email"> · </span>
+                                <span v-if="actionCustomer.email">{{ actionCustomer.email }}</span>
+                                <span v-if="!actionCustomer.phone && !actionCustomer.email">No contact details</span>
+                            </SheetDescription>
+                        </div>
+                    </div>
+                </SheetHeader>
+
+                <div v-if="actionCustomer" class="divide-y divide-border rounded-xl border border-border bg-card">
+                    <!-- Edit Customer -->
+                    <button
+                        v-if="may('customers', 'update')"
+                        type="button"
+                        class="press flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium transition-colors hover:bg-muted/50 first:rounded-t-xl"
+                        @click="handleEditCustomerFromSheet(actionCustomer)"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                            <Pencil class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">Edit customer</p>
+                            <p class="text-xs text-muted-foreground">Update name, phone, email and loyalty points</p>
+                        </div>
+                    </button>
+
+                    <!-- History -->
+                    <Link
+                        v-if="canActivity"
+                        :href="route('customers.history', { subjectId: actionCustomer.uuid })"
+                        class="press flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-colors hover:bg-muted/50"
+                        @click="actionSheetOpen = false"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                            <History class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">Activity history</p>
+                            <p class="text-xs text-muted-foreground">Audit logs, orders and account updates</p>
+                        </div>
+                    </Link>
+
+                    <!-- Delete -->
+                    <button
+                        v-if="may('customers', 'delete')"
+                        type="button"
+                        class="press flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 last:rounded-b-xl"
+                        @click="handleDeleteCustomerFromSheet(actionCustomer)"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                            <Trash2 class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight">Delete customer</p>
+                            <p class="text-xs text-destructive/70">Remove customer profile from store</p>
+                        </div>
+                    </button>
+                </div>
+
+                <Button variant="outline" class="press mt-4 w-full h-11 rounded-xl" @click="actionSheetOpen = false">
+                    Cancel
+                </Button>
+            </SheetContent>
+        </Sheet>
+
         <Dialog :open="!!pendingDelete" @update:open="(v) => !v && (pendingDelete = null)">
             <DialogContent>
                 <DialogHeader>
