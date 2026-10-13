@@ -11,13 +11,20 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { currentPerPage } from '@/lib/utils';
 import type { Paginated, SharedData, Store, User } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { Pencil, Plus, Search, ShieldCheck, Trash2, Users } from 'lucide-vue-next';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { History, MoreVertical, Pencil, Plus, Search, ShieldCheck, Trash2, Users } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 type PermissionOption = {
@@ -218,6 +225,31 @@ function confirmDelete() {
     });
 }
 
+const canActivity = computed(() => !!page.props.auth?.can?.activity);
+
+const actionUser = ref<User | null>(null);
+const actionSheetOpen = ref(false);
+
+function openUserActions(u: User) {
+    actionUser.value = u;
+    actionSheetOpen.value = true;
+}
+
+function handleEditUserFromSheet(u: User) {
+    actionSheetOpen.value = false;
+    openEdit(u);
+}
+
+function handlePermissionsFromSheet(u: User) {
+    actionSheetOpen.value = false;
+    openPermissions(u);
+}
+
+function handleDeleteUserFromSheet(u: User) {
+    actionSheetOpen.value = false;
+    pendingDelete.value = u;
+}
+
 const roleTone = (role: string) => (role === 'admin' ? 'default' : role === 'manager' ? 'secondary' : 'outline');
 </script>
 
@@ -355,27 +387,13 @@ const roleTone = (role: string) => (role === 'admin' ? 'default' : role === 'man
                         </button>
 
                         <button
-                            v-if="canEditPermissions && u.role !== 'admin'"
                             type="button"
-                            class="list-row-action"
-                            :aria-label="`Permissions for ${u.name}`"
-                            @click="openPermissions(u)"
+                            class="list-row-action press mr-1"
+                            :aria-label="`Actions for ${u.name}`"
+                            @click="openUserActions(u)"
                         >
-                            <ShieldCheck class="size-4" />
+                            <MoreVertical class="size-5" />
                         </button>
-
-                        <button
-                            v-if="u.id !== currentUserId"
-                            type="button"
-                            class="list-row-action"
-                            :aria-label="`Delete ${u.name}`"
-                            @click="pendingDelete = u"
-                        >
-                            <Trash2 class="size-4" />
-                        </button>
-                        <!-- Keeps the name column aligned across rows where the
-                             delete control is absent (you cannot delete yourself). -->
-                        <span v-else class="w-12 shrink-0" aria-hidden="true" />
                     </li>
                 </ul>
 
@@ -588,6 +606,98 @@ const roleTone = (role: string) => (role === 'admin' ? 'default' : role === 'man
                 </form>
             </DialogContent>
         </Dialog>
+
+        <!-- Mobile User Action Sheet -->
+        <Sheet v-model:open="actionSheetOpen">
+            <SheetContent side="bottom" class="max-h-[85vh] rounded-t-2xl overflow-y-auto px-5 py-6">
+                <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
+                <SheetHeader v-if="actionUser" class="mb-4 text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold">
+                            {{ actionUser.name.charAt(0).toUpperCase() }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <SheetTitle class="truncate font-display text-base font-bold">{{ actionUser.name }}</SheetTitle>
+                                <span v-if="actionUser.id === currentUserId" class="text-xs text-muted-foreground">(you)</span>
+                            </div>
+                            <SheetDescription class="truncate text-xs text-muted-foreground">
+                                {{ actionUser.email }} · {{ actionUser.store?.name ?? 'All stores' }}
+                            </SheetDescription>
+                        </div>
+                    </div>
+                </SheetHeader>
+
+                <div v-if="actionUser" class="divide-y divide-border rounded-xl border border-border bg-card">
+                    <!-- Edit Staff -->
+                    <button
+                        type="button"
+                        class="press flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium transition-colors hover:bg-muted/50 first:rounded-t-xl"
+                        @click="handleEditUserFromSheet(actionUser)"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                            <Pencil class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">Edit account</p>
+                            <p class="text-xs text-muted-foreground">Update name, email, store and password</p>
+                        </div>
+                    </button>
+
+                    <!-- Permissions -->
+                    <button
+                        v-if="canEditPermissions && actionUser.role !== 'admin'"
+                        type="button"
+                        class="press flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium transition-colors hover:bg-muted/50"
+                        @click="handlePermissionsFromSheet(actionUser)"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <ShieldCheck class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">Staff permissions</p>
+                            <p class="text-xs text-muted-foreground">Customize feature and store access</p>
+                        </div>
+                    </button>
+
+                    <!-- History -->
+                    <Link
+                        v-if="canActivity"
+                        :href="route('users.history', { subjectId: actionUser.uuid })"
+                        class="press flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-colors hover:bg-muted/50"
+                        @click="actionSheetOpen = false"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                            <History class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">Activity history</p>
+                            <p class="text-xs text-muted-foreground">Sign-ins, sales and changes by this user</p>
+                        </div>
+                    </Link>
+
+                    <!-- Delete -->
+                    <button
+                        v-if="actionUser.id !== currentUserId"
+                        type="button"
+                        class="press flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 last:rounded-b-xl"
+                        @click="handleDeleteUserFromSheet(actionUser)"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                            <Trash2 class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight">Delete account</p>
+                            <p class="text-xs text-destructive/70">Remove access for this staff member</p>
+                        </div>
+                    </button>
+                </div>
+
+                <Button variant="outline" class="press mt-4 w-full h-11 rounded-xl" @click="actionSheetOpen = false">
+                    Cancel
+                </Button>
+            </SheetContent>
+        </Sheet>
 
         <Dialog :open="!!pendingDelete" @update:open="(v) => !v && (pendingDelete = null)">
             <DialogContent>

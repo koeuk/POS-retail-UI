@@ -8,10 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { Register, Store } from '@/types';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { MapPin, Monitor, Phone, Plus, Store as StoreIcon, Trash2 } from 'lucide-vue-next';
+import type { Register, SharedData, Store } from '@/types';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { History, MapPin, Monitor, MoreVertical, Pencil, Phone, Plus, Store as StoreIcon, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 defineProps<{
@@ -24,8 +31,27 @@ defineProps<{
  * worth reading, so the message comes back as a validation error rather than
  * a toast that vanishes.
  */
-const page = usePage();
+const page = usePage<SharedData>();
 const deleteError = computed(() => (page.props.errors as Record<string, string>)?.store ?? null);
+const canActivity = computed(() => !!page.props.auth?.can?.activity);
+
+const actionStore = ref<Store | null>(null);
+const actionSheetOpen = ref(false);
+
+function openStoreActions(store: Store) {
+    actionStore.value = store;
+    actionSheetOpen.value = true;
+}
+
+function handleEditFromSheet(store: Store) {
+    actionSheetOpen.value = false;
+    openStore(store);
+}
+
+function handleDeleteFromSheet(store: Store) {
+    actionSheetOpen.value = false;
+    pendingDelete.value = store;
+}
 
 const pendingDelete = ref<Store | null>(null);
 
@@ -129,24 +155,32 @@ function submitRegister() {
                             </div>
                         </div>
                         <div v-if="canManage" class="flex shrink-0 items-center gap-1">
-                            <HistoryButton subject-type="Store" :subject-id="store.uuid" :label="store.name" />
-                            <Button variant="ghost" size="sm" class="press touch-target" @click="openStore(store)"> Edit </Button>
-                            <!--
-                                Disabled rather than hidden when it is the only
-                                store: a control that vanishes makes people hunt
-                                for it, whereas a dead one with a reason attached
-                                answers the question on the spot.
-                            -->
+                            <!-- Desktop: inline buttons -->
+                            <div class="hidden items-center gap-1 md:flex">
+                                <HistoryButton subject-type="Store" :subject-id="store.uuid" :label="store.name" />
+                                <Button variant="ghost" size="sm" class="press touch-target" @click="openStore(store)"> Edit </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="press touch-target size-8 text-muted-foreground enabled:hover:text-destructive disabled:opacity-40"
+                                    :disabled="stores.length <= 1"
+                                    :aria-label="`Delete ${store.name}`"
+                                    :title="stores.length <= 1 ? 'This is the only store — the app needs at least one' : `Delete ${store.name}`"
+                                    @click="pendingDelete = store"
+                                >
+                                    <Trash2 class="size-4" />
+                                </Button>
+                            </div>
+
+                            <!-- Mobile: > 2 buttons collapsed to 3-dots icon menu -->
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                class="press touch-target size-8 text-muted-foreground enabled:hover:text-destructive disabled:opacity-40"
-                                :disabled="stores.length <= 1"
-                                :aria-label="`Delete ${store.name}`"
-                                :title="stores.length <= 1 ? 'This is the only store — the app needs at least one' : `Delete ${store.name}`"
-                                @click="pendingDelete = store"
+                                class="press touch-target size-9 text-muted-foreground md:hidden"
+                                :aria-label="`Actions for ${store.name}`"
+                                @click="openStoreActions(store)"
                             >
-                                <Trash2 class="size-4" />
+                                <MoreVertical class="size-5" />
                             </Button>
                         </div>
                     </div>
@@ -277,6 +311,79 @@ function submitRegister() {
                 </form>
             </DialogContent>
         </Dialog>
+
+        <!-- Mobile Store Actions Sheet -->
+        <Sheet v-model:open="actionSheetOpen">
+            <SheetContent side="bottom" class="max-h-[85vh] rounded-t-2xl overflow-y-auto px-5 py-6">
+                <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
+                <SheetHeader v-if="actionStore" class="mb-4 text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <StoreIcon class="size-5" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <SheetTitle class="truncate font-display text-base font-bold">{{ actionStore.name }}</SheetTitle>
+                            <SheetDescription class="truncate text-xs text-muted-foreground">
+                                {{ actionStore.orders_count ?? 0 }} orders · {{ actionStore.users_count ?? 0 }} staff
+                            </SheetDescription>
+                        </div>
+                    </div>
+                </SheetHeader>
+
+                <div v-if="actionStore" class="divide-y divide-border rounded-xl border border-border bg-card">
+                    <button
+                        type="button"
+                        class="press flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium transition-colors hover:bg-muted/50 first:rounded-t-xl"
+                        @click="handleEditFromSheet(actionStore)"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                            <Pencil class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">Edit store</p>
+                            <p class="text-xs text-muted-foreground">Change store name, address and phone</p>
+                        </div>
+                    </button>
+
+                    <Link
+                        v-if="canActivity"
+                        :href="route('stores.history', { subjectId: actionStore.uuid })"
+                        class="press flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-colors hover:bg-muted/50"
+                        @click="actionSheetOpen = false"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                            <History class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">Activity history</p>
+                            <p class="text-xs text-muted-foreground">Audit logs and changes recorded for this store</p>
+                        </div>
+                    </Link>
+
+                    <button
+                        type="button"
+                        class="press flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium transition-colors last:rounded-b-xl disabled:opacity-40"
+                        :class="stores.length <= 1 ? 'text-muted-foreground cursor-not-allowed' : 'text-destructive hover:bg-destructive/10'"
+                        :disabled="stores.length <= 1"
+                        @click="handleDeleteFromSheet(actionStore)"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg" :class="stores.length <= 1 ? 'bg-muted text-muted-foreground' : 'bg-destructive/10 text-destructive'">
+                            <Trash2 class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight">{{ stores.length <= 1 ? 'Cannot delete only store' : 'Delete store' }}</p>
+                            <p class="text-xs" :class="stores.length <= 1 ? 'text-muted-foreground' : 'text-destructive/70'">
+                                {{ stores.length <= 1 ? 'The app needs at least one store' : 'Remove this store and its registers' }}
+                            </p>
+                        </div>
+                    </button>
+                </div>
+
+                <Button variant="outline" class="press mt-4 w-full h-11 rounded-xl" @click="actionSheetOpen = false">
+                    Cancel
+                </Button>
+            </SheetContent>
+        </Sheet>
 
         <!-- Delete confirmation -->
         <Dialog :open="!!pendingDelete" @update:open="(v) => !v && (pendingDelete = null)">

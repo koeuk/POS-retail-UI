@@ -9,15 +9,21 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { usePermissions } from '@/composables/usePermissions';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { currentPerPage } from '@/lib/utils';
-import type { Customer, Paginated } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
-import { Pencil, Plus, Search, Trash2, UsersRound } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import type { Customer, Paginated, SharedData } from '@/types';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { History, MoreVertical, Pencil, Plus, Search, Trash2, UsersRound } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
     customers: Paginated<Customer>;
@@ -72,7 +78,27 @@ function submit() {
     }
 }
 
+const page = usePage<SharedData>();
+const canActivity = computed(() => !!page.props.auth?.can?.activity);
+
 const pendingDelete = ref<Customer | null>(null);
+const actionCustomer = ref<Customer | null>(null);
+const actionSheetOpen = ref(false);
+
+function openCustomerActions(c: Customer) {
+    actionCustomer.value = c;
+    actionSheetOpen.value = true;
+}
+
+function handleEditCustomerFromSheet(c: Customer) {
+    actionSheetOpen.value = false;
+    openEdit(c);
+}
+
+function handleDeleteCustomerFromSheet(c: Customer) {
+    actionSheetOpen.value = false;
+    pendingDelete.value = c;
+}
 
 function confirmDelete() {
     if (!pendingDelete.value) return;
@@ -198,13 +224,12 @@ function confirmDelete() {
                         </button>
 
                         <button
-                            v-if="may('customers', 'delete')"
                             type="button"
-                            class="list-row-action"
-                            :aria-label="`Delete ${c.name}`"
-                            @click="pendingDelete = c"
+                            class="list-row-action press mr-1"
+                            :aria-label="`Actions for ${c.name}`"
+                            @click="openCustomerActions(c)"
                         >
-                            <Trash2 class="size-4" />
+                            <MoreVertical class="size-5" />
                         </button>
                     </li>
                 </ul>

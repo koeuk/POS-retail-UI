@@ -31,9 +31,9 @@ import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components
 import { usePermissions } from '@/composables/usePermissions';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { currentPerPage, imageSrc } from '@/lib/utils';
-import type { Category, Paginated, Product } from '@/types';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { Boxes, Eye, Pencil, Plus, Search, SlidersHorizontal, Trash2 } from 'lucide-vue-next';
+import type { Category, Paginated, Product, SharedData } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Boxes, Eye, History, MoreVertical, Pencil, Plus, Search, SlidersHorizontal, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -89,7 +89,22 @@ function resetFilters() {
     status.value = ALL;
 }
 
+const page = usePage<SharedData>();
+const canActivity = computed(() => !!page.props.auth?.can?.activity);
+
 const pendingDelete = ref<Product | null>(null);
+const actionProduct = ref<Product | null>(null);
+const actionSheetOpen = ref(false);
+
+function openActions(p: Product) {
+    actionProduct.value = p;
+    actionSheetOpen.value = true;
+}
+
+function handleDeleteFromSheet(p: Product) {
+    actionSheetOpen.value = false;
+    pendingDelete.value = p;
+}
 
 function confirmDelete() {
     if (!pendingDelete.value) return;
@@ -336,10 +351,10 @@ function stockTone(qty: number | null | undefined) {
                     </Table>
                 </div>
 
-                <!-- Phone list. Tap the row for details; every action sits labelled in the bar below. -->
+                <!-- Phone list. Tap the row for details; 3-dots menu for full actions sheet. -->
                 <ul v-if="products.data.length" class="md:hidden">
-                    <li v-for="p in products.data" :key="p.id" class="list-row flex-col">
-                        <Link :href="route('products.show', { product: p.uuid })" class="list-row-main">
+                    <li v-for="p in products.data" :key="p.id" class="list-row items-center">
+                        <Link :href="route('products.show', { product: p.uuid })" class="list-row-main pr-1">
                             <div
                                 class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/50"
                             >
@@ -365,33 +380,14 @@ function stockTone(qty: number | null | undefined) {
                             </div>
                         </Link>
 
-                        <div class="flex items-stretch gap-2 border-t border-border p-2">
-                            <Link
-                                :href="route('products.show', { product: p.uuid })"
-                                class="press flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground"
-                            >
-                                <Eye class="size-4" />
-                                View
-                            </Link>
-                            <HistoryButton subject-type="Product" :subject-id="p.uuid" :label="p.name" with-label />
-                            <Link
-                                v-if="may('products', 'update')"
-                                :href="route('products.edit', { product: p.uuid })"
-                                class="press flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground"
-                            >
-                                <Pencil class="size-4" />
-                                Edit
-                            </Link>
-                            <button
-                                v-if="may('products', 'delete')"
-                                type="button"
-                                class="press flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border text-xs font-medium text-destructive"
-                                @click="pendingDelete = p"
-                            >
-                                <Trash2 class="size-4" />
-                                Delete
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            class="list-row-action press mr-1"
+                            :aria-label="`Actions for ${p.name}`"
+                            @click="openActions(p)"
+                        >
+                            <MoreVertical class="size-5" />
+                        </button>
                     </li>
                 </ul>
 
@@ -422,6 +418,94 @@ function stockTone(qty: number | null | undefined) {
                 New product
             </Link>
         </Button>
+
+        <!-- Mobile Product Action Sheet -->
+        <Sheet v-model:open="actionSheetOpen">
+            <SheetContent side="bottom" class="max-h-[85vh] rounded-t-2xl overflow-y-auto px-5 py-6">
+                <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
+                <SheetHeader v-if="actionProduct" class="mb-4 text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/50">
+                            <img v-if="actionProduct.image" :src="imageSrc(actionProduct.image)" :alt="actionProduct.name" class="size-full object-cover" />
+                            <Boxes v-else class="size-5 text-muted-foreground" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <SheetTitle class="truncate font-display text-base font-bold">{{ actionProduct.name }}</SheetTitle>
+                            <SheetDescription class="truncate text-xs text-muted-foreground">
+                                <span class="font-mono">{{ actionProduct.sku }}</span>
+                                <span v-if="actionProduct.category"> · {{ actionProduct.category.name }}</span>
+                                <span v-if="!actionProduct.is_active" class="text-destructive"> · Inactive</span>
+                            </SheetDescription>
+                        </div>
+                    </div>
+                </SheetHeader>
+
+                <div v-if="actionProduct" class="divide-y divide-border rounded-xl border border-border bg-card">
+                    <Link
+                        :href="route('products.show', { product: actionProduct.uuid })"
+                        class="press flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-colors hover:bg-muted/50 first:rounded-t-xl"
+                        @click="actionSheetOpen = false"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <Eye class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">View details</p>
+                            <p class="text-xs text-muted-foreground">Product specifications, barcode and stock</p>
+                        </div>
+                    </Link>
+
+                    <Link
+                        v-if="canActivity"
+                        :href="route('products.history', { subjectId: actionProduct.uuid })"
+                        class="press flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-colors hover:bg-muted/50"
+                        @click="actionSheetOpen = false"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                            <History class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">Activity history</p>
+                            <p class="text-xs text-muted-foreground">Audit logs, edits and stock movements</p>
+                        </div>
+                    </Link>
+
+                    <Link
+                        v-if="may('products', 'update')"
+                        :href="route('products.edit', { product: actionProduct.uuid })"
+                        class="press flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-colors hover:bg-muted/50"
+                        @click="actionSheetOpen = false"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                            <Pencil class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight text-foreground">Edit product</p>
+                            <p class="text-xs text-muted-foreground">Update pricing, cost, details and variations</p>
+                        </div>
+                    </Link>
+
+                    <button
+                        v-if="may('products', 'delete')"
+                        type="button"
+                        class="press flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 last:rounded-b-xl"
+                        @click="handleDeleteFromSheet(actionProduct)"
+                    >
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                            <Trash2 class="size-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="leading-tight">Delete product</p>
+                            <p class="text-xs text-destructive/70">Remove product from catalogue</p>
+                        </div>
+                    </button>
+                </div>
+
+                <Button variant="outline" class="press mt-4 w-full h-11 rounded-xl" @click="actionSheetOpen = false">
+                    Cancel
+                </Button>
+            </SheetContent>
+        </Sheet>
 
         <AlertDialog :open="!!pendingDelete" @update:open="(v) => !v && (pendingDelete = null)">
             <AlertDialogContent>
