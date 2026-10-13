@@ -29,7 +29,8 @@ const parent = computed(() => (props.breadcrumbs.length > 1 ? props.breadcrumbs.
  * should display a back button icon.
  */
 const isTabRoot = computed(() => {
-    return path.value === '/' || path.value === '/dashboard' || path.value === '/pos' || path.value === '/orders';
+    const cleanPath = path.value.replace(/\/+$/, '') || '/';
+    return cleanPath === '/' || cleanPath === '/dashboard' || cleanPath === '/pos' || cleanPath === '/orders';
 });
 
 /*
