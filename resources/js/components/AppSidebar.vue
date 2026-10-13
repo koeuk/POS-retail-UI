@@ -16,13 +16,11 @@ import { isActivePath, visibleGroups } from '@/lib/navigation';
 import { useNavLock } from '@/Pos/composables/useNavLock';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Store as StoreIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
 const page = usePage<SharedData>();
 const can = computed(() => page.props.auth.can);
-const storeName = computed(() => page.props.auth.store_name);
 const currentPath = computed(() => new URL(page.url, 'http://x').pathname);
 
 const groups = computed(() => visibleGroups(can.value));
@@ -54,20 +52,6 @@ const isBlocked = (href: string) => navLock.locked && !isActive(href);
         </SidebarHeader>
 
         <SidebarContent>
-            <!-- Which shop you are standing in. A multi-store operator should
-                 never have to guess which stock they are looking at. -->
-            <SidebarGroup v-if="storeName" class="py-1">
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton :tooltip="storeName" class="pointer-events-none">
-                                <StoreIcon class="text-primary" />
-                                <span class="truncate font-medium">{{ storeName }}</span>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
 
             <SidebarGroup v-for="group in groups" :key="group.label">
                 <SidebarGroupLabel class="font-mono text-[0.65rem] uppercase tracking-[0.14em]">
