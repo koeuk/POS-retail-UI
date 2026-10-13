@@ -23,5 +23,5 @@ export function currentPerPage(): string | undefined {
 export function imageSrc(src: string | null | undefined): string | undefined {
     if (!src) return undefined;
 
-    return /^https?:\/\//.test(src) ? src : `/storage/${src}`;
+    return /^https?:\/\/|^\//.test(src) ? src : `/storage/${src}`;
 }
