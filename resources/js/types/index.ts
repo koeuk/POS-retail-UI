@@ -51,12 +51,12 @@ export interface SharedData {
     currency: { code: string; symbol: string; decimals: number; riel_per_usd: number };
     /** Uploaded shop branding — paths on the public disk, or null for the built-in look. */
     branding: { logo: string | null; favicon: string | null };
-    ziggy: {
-        location: string;
-        url: string;
-        port: null | number;
-        defaults: Record<string, unknown>;
-        routes: Record<string, string>;
+    ziggy?: {
+        location?: string;
+        url?: string;
+        port?: null | number;
+        defaults?: Record<string, unknown>;
+        routes?: Record<string, string>;
     };
 }
 

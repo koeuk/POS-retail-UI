@@ -8,7 +8,6 @@ import type {
     Store,
     User,
 } from '@/types';
-import { Ziggy } from '../ziggy';
 
 /* -------------------------------------------------------------------------- */
 /* Auth & Shop Identity                                                       */
@@ -111,7 +110,7 @@ export const mockSharedData: SharedData = {
         logo: null,
         favicon: null,
     },
-    ziggy: Ziggy as unknown as SharedData['ziggy'],
+    ziggy: { location: '', url: '', port: null, defaults: {}, routes: {} },
 };
 
 /* -------------------------------------------------------------------------- */
